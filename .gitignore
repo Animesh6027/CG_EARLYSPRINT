@@ -29,6 +29,7 @@ out/
 # ==========================================
 .metadata/
 .classpath
+.factorypath
 .project
 .settings/
 .loadpath

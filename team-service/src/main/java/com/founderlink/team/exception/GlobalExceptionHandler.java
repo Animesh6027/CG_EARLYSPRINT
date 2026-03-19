@@ -200,6 +200,23 @@ public class GlobalExceptionHandler {
 	             .status(HttpStatus.FORBIDDEN)
 	             .body(error);
 	 }
+	 
+	 @ExceptionHandler(StartupNotFoundException.class)
+	 public ResponseEntity<ErrorResponse> handleStartupNotFoundException(
+	         StartupNotFoundException ex) {
+
+	     log.error("Startup not found: {}", ex.getMessage());
+
+	     ErrorResponse error = new ErrorResponse(
+	             HttpStatus.NOT_FOUND.value(),
+	             ex.getMessage(),
+	             LocalDateTime.now()
+	     );
+
+	     return ResponseEntity
+	             .status(HttpStatus.NOT_FOUND)
+	             .body(error);
+	 }
     
 	 @ExceptionHandler(HttpMessageNotReadableException.class)
 	 public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(

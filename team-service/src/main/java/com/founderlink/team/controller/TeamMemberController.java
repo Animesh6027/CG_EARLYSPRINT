@@ -84,7 +84,7 @@ public class TeamMemberController {
         }
 
         List<TeamMemberResponseDto> response = teamMemberService
-                .getTeamByStartupId(startupId);
+                .getTeamByStartupId(startupId,userId,userRole);
 
         return ResponseEntity
                 .ok(new ApiResponse<>(

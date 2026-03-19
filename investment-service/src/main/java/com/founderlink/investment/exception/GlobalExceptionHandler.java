@@ -147,6 +147,23 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
     
+    @ExceptionHandler(StartupNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleStartupNotFoundException(
+            StartupNotFoundException ex) {
+
+        log.error("Startup not found: {}", ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(error);
+    }
+    
     @ExceptionHandler(ForbiddenAccessException.class)
     public ResponseEntity<ErrorResponse> handleForbiddenAccessException(
             ForbiddenAccessException ex) {

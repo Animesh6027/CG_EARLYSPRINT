@@ -143,7 +143,7 @@ public class InvitationController {
         }
 
         List<InvitationResponseDto> response = invitationService
-                .getInvitationsByStartupId(startupId);
+                .getInvitationsByStartupId(startupId,founderId);
 
         return ResponseEntity
                 .ok(new ApiResponse<>(

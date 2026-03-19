@@ -74,7 +74,7 @@ public class InvestmentController {
         // TODO: FeignClient verify founder owns startup
 
         List<InvestmentResponseDto> response = investmentService
-                .getInvestmentsByStartupId(startupId);
+                .getInvestmentsByStartupId(startupId,founderId);
 
         return ResponseEntity
                 .ok(new ApiResponse<>(
@@ -126,7 +126,7 @@ public class InvestmentController {
         // TODO: FeignClient verify founder owns startup
 
         InvestmentResponseDto response = investmentService
-                .updateInvestmentStatus(id, statusUpdateDto);
+                .updateInvestmentStatus(id,founderId,statusUpdateDto);
 
         return ResponseEntity
                 .ok(new ApiResponse<>(

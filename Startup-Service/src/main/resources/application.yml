@@ -51,3 +51,20 @@ spring:
 #     com.founderlink.startup: DEBUG
 #   file:
 #     name: logs/startup-service.log
+
+# ==========================================
+# RABBITMQ QUEUES AND EXCHANGES
+# ==========================================
+# rabbitmq:
+#   exchange: founderlink.exchange
+#   startup:
+#     queue: startup.queue
+#     routing-key: startup.created
+#     deleted:
+#       routing-key: startup.deleted
+#   investment:
+#     deleted:
+#       queue: investment.startup.deleted.queue
+#   team:
+#     deleted:
+#       queue: team.startup.deleted.queue

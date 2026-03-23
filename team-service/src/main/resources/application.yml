@@ -62,3 +62,16 @@ spring:
 #     com.founderlink.team: DEBUG
 #   file:
 #     name: logs/team-service.log
+
+# ==========================================
+# RABBITMQ QUEUES AND EXCHANGES
+# ==========================================
+# rabbitmq:
+#   exchange: founderlink.exchange
+#   team:
+#     queue: team.queue
+#     routing-key: team.invite.sent
+#   startup:
+#     deleted:
+#       queue: team.startup.deleted.queue
+#       routing-key: startup.deleted

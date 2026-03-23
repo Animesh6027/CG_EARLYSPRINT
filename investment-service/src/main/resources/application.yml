@@ -65,3 +65,16 @@ spring:
 #     com.founderlink.investment: DEBUG
 #   file:
 #     name: logs/investment-service.log
+
+# ==========================================
+# RABBITMQ QUEUES AND EXCHANGES
+# ==========================================
+# rabbitmq:
+#   exchange: founderlink.exchange
+#   investment:
+#     queue: investment.queue
+#     routing-key: investment.created
+#   startup:
+#     deleted:
+#       queue: investment.startup.deleted.queue
+#       routing-key: startup.deleted

@@ -38,10 +38,10 @@ public class UserController {
 
     @Operation(summary = "Create user (internal)", description = "Creates a new user via internal endpoint.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User created successfully"),
-        @ApiResponse(responseCode = "400", description = "Validation failed — invalid request body"),
-        @ApiResponse(responseCode = "403", description = "Forbidden — invalid internal secret"),
-        @ApiResponse(responseCode = "409", description = "User already exists")
+            @ApiResponse(responseCode = "200", description = "User created successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed — invalid request body"),
+            @ApiResponse(responseCode = "403", description = "Forbidden — invalid internal secret"),
+            @ApiResponse(responseCode = "409", description = "User already exists")
     })
     @PostMapping("/internal")
     public ResponseEntity<UserResponseDto> createUser(
@@ -58,8 +58,8 @@ public class UserController {
 
     @Operation(summary = "Get user by ID", description = "Fetches a user by their ID.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User fetched successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "200", description = "User fetched successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found")
     })
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUser(@PathVariable Long id) {
@@ -68,19 +68,19 @@ public class UserController {
 
     @Operation(summary = "Update user", description = "Updates a user's information.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "User updated successfully"),
-        @ApiResponse(responseCode = "404", description = "User not found"),
-        @ApiResponse(responseCode = "409", description = "Conflict — duplicate data")
+            @ApiResponse(responseCode = "200", description = "User updated successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict — duplicate data")
     })
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id,
-        @RequestBody UserRequestDto userRequestDto) {
+            @RequestBody UserRequestDto userRequestDto) {
         return ResponseEntity.ok(service.updateUser(id, userRequestDto));
     }
 
     @Operation(summary = "Get all users", description = "Fetches all users.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Users fetched successfully")
+            @ApiResponse(responseCode = "200", description = "Users fetched successfully")
     })
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
@@ -89,31 +89,31 @@ public class UserController {
 
     @Operation(summary = "Get users by role", description = "Fetches users by their role.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Users fetched successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid role provided"),
-        @ApiResponse(responseCode = "403", description = "Forbidden — ADMIN role not allowed")
+            @ApiResponse(responseCode = "200", description = "Users fetched successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid role provided"),
+            @ApiResponse(responseCode = "403", description = "Forbidden — ADMIN role not allowed")
     })
-    @GetMapping("/role")
+    @GetMapping("/role/{role}")
     public ResponseEntity<List<UserResponseDto>> getUsersByRole(
-        @RequestHeader(name = "X-User-Role") String roleHeader) {
+            @PathVariable String role) {
 
-        log.info("GET /users/role - fetching users by role: {}", roleHeader);
+        log.info("GET /users/role/{} - fetching users by role", role);
 
         try {
-            String roleName = roleHeader.toUpperCase().replace("ROLE_", "");
-            Role role = Role.valueOf(roleName);
+            String roleName = role.toUpperCase().replace("ROLE_", "");
+            Role roleEnum = Role.valueOf(roleName);
 
-            if (role == Role.ADMIN) {
+            if (roleEnum == Role.ADMIN) {
                 log.warn("Attempt to fetch ADMIN users - blocked");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Collections.emptyList());
             }
 
-            List<UserResponseDto> response = service.getUsersByRole(role);
-            log.info("Successfully fetched {} users with role: {}", response.size(), roleHeader);
+            List<UserResponseDto> response = service.getUsersByRole(roleEnum);
+            log.info("Successfully fetched {} users with role: {}", response.size(), role);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid role provided: {}", roleHeader);
+            log.warn("Invalid role provided: {}", role);
             return ResponseEntity.badRequest().body(Collections.emptyList());
         }
     }

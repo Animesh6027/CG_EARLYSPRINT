@@ -74,12 +74,16 @@ pipeline {
 
                         if (fetchStatus == 0) {
                             changedFiles = sh(
-                                script: "git diff --name-only ${prevCommit} HEAD",
+                                script: "git diff --name-only FETCH_HEAD HEAD",
                                 returnStdout: true
                             ).trim()
-                            echo "Diff: ${prevCommit} → HEAD"
+                            echo "Diff: ${prevCommit} (FETCH_HEAD) → HEAD"
+                            if (changedFiles) {
+                                echo "Raw changed files:\n${changedFiles}"
+                            } else {
+                                echo "Raw changed files: (empty — diff returned nothing)"
+                            }
                         } else {
-
                             echo "WARNING: Could not fetch previous commit ${prevCommit}. Treating as full rebuild."
                             changedFiles = sh(script: "git ls-files", returnStdout: true).trim()
                         }
@@ -94,13 +98,18 @@ pipeline {
                     }
 
                     if (env.SKIP_BUILD != 'true') {
-                        def fileList = changedFiles ? changedFiles.split("\n") : []
+                        def fileList = changedFiles
+                            ? changedFiles.split("\n").collect { it.trim() }.findAll { it }
+                            : []
+
+                        echo "Parsed ${fileList.size()} changed file(s)"
 
                         def services        = [] as Set
                         def infraServices   = [] as Set
                         def restartServices = [] as Set
 
                         fileList.each { file ->
+                            echo "  checking: '${file}'"
                             if (file.startsWith("auth-service/"))         services.add("auth-service")
                             if (file.startsWith("user-service/"))         services.add("user-service")
                             if (file.startsWith("startup-service/"))      services.add("startup-service")

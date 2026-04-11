@@ -1,0 +1,47 @@
+{
+  "/auth": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/users": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/startup": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/investments": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/teams": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/messages": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/notifications": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/payments": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/wallets": {
+    "target": "http://localhost:8090",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

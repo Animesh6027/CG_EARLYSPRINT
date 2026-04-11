@@ -1,0 +1,1224 @@
+﻿<div class="app-page">
+  <div *ngIf="!isAuthenticated" class="page-split">
+    <aside class="hero-side">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span class="brand-tag">
+          <img src="assets/founderlink-logo.svg" alt="FounderLink logo" class="brand-logo" />
+          FounderLink
+        </span>
+        <h1>Connect. Build. Invest.</h1>
+        <p class="hero-text">Secure startup access for founders, investors, and cofounders. Sign in to manage your portfolio, discover startups, and move faster.</p>
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span class="stat-value">{{ publicInvestors.length }}+</span>
+            <span class="stat-label">Active Investors</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ publicFounders.length }}+</span>
+            <span class="stat-label">Verified Founders</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ publicStartups.length }}+</span>
+            <span class="stat-label">Active Startups</span>
+          </div>
+        </div>
+        <p class="hero-trust">Trusted by founders and investors building the next wave.</p>
+      </div>
+    </aside>
+
+    <main class="login-side">
+      <div class="login-card">
+        <div class="login-header">
+          <p class="eyebrow">Welcome back</p>
+          <h2>Sign in to FounderLink</h2>
+          <p class="login-subtitle">Enter your credentials to access the platform.</p>
+        </div>
+
+        <div class="tab-row" role="tablist" aria-label="Authentication tabs">
+          <span class="tab-indicator" [ngClass]="showRegister ? 'is-register' : 'is-login'"></span>
+          <button class="tab-button" [class.active]="!showRegister && !showForgot" type="button" (click)="showLogin()">Login</button>
+          <button class="tab-button" [class.active]="showRegister" type="button" (click)="toggleRegister()">Register</button>
+        </div>
+
+        <section *ngIf="!showRegister && !showForgot" class="form-section">
+          <label class="field-label" for="loginEmail">Email</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6" />
+                <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </span>
+            <input id="loginEmail" type="email" name="loginEmail" [(ngModel)]="loginEmail" class="field-input" placeholder="name@example.com" autocomplete="username" />
+          </div>
+
+          <label class="field-label" for="loginPassword">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M6 10V8a6 6 0 1 1 12 0v2" stroke="currentColor" stroke-width="1.6" />
+                <rect x="5" y="10" width="14" height="10" rx="2.2" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </span>
+            <input id="loginPassword" [type]="showLoginPassword ? 'text' : 'password'" name="loginPassword" [(ngModel)]="loginPassword" class="field-input" placeholder="Enter your password" autocomplete="current-password" />
+            <button type="button" class="password-toggle-inline" (click)="togglePassword('login')">{{ showLoginPassword ? 'Hide' : 'Show' }}</button>
+          </div>
+
+          <button class="btn-primary" (click)="login()" [disabled]="loading">{{ loading ? 'Signing in...' : 'Sign In' }}</button>
+          <button class="btn-link" type="button" (click)="toggleForgot()">Forgot Password?</button>
+        </section>
+
+        <section *ngIf="showRegister" class="form-section">
+          <label class="field-label" for="registerName">Full name</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+                <path d="M4 20c2.5-4 13.5-4 16 0" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </span>
+            <input id="registerName" type="text" name="registerName" [(ngModel)]="registerName" class="field-input" placeholder="Jane Doe" autocomplete="name" />
+          </div>
+
+          <label class="field-label" for="registerEmail">Email</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6" />
+                <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </span>
+            <input id="registerEmail" type="email" name="registerEmail" [(ngModel)]="registerEmail" class="field-input" placeholder="name@example.com" autocomplete="email" />
+          </div>
+
+          <label class="field-label" for="registerPassword">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M6 10V8a6 6 0 1 1 12 0v2" stroke="currentColor" stroke-width="1.6" />
+                <rect x="5" y="10" width="14" height="10" rx="2.2" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </span>
+            <input id="registerPassword" [type]="showRegisterPassword ? 'text' : 'password'" name="registerPassword" [(ngModel)]="registerPassword" class="field-input" placeholder="Create a secure password" autocomplete="new-password" />
+            <button type="button" class="password-toggle-inline" (click)="togglePassword('register')">{{ showRegisterPassword ? 'Hide' : 'Show' }}</button>
+          </div>
+
+          <label class="field-label" for="registerRole">Account type</label>
+          <select id="registerRole" name="registerRole" [(ngModel)]="registerRole" class="field-input">
+            <option value="FOUNDER">Founder</option>
+            <option value="INVESTOR">Investor</option>
+            <option value="COFOUNDER">Cofounder</option>
+          </select>
+
+          <button class="btn-primary" (click)="register()" [disabled]="loading">Create account</button>
+          <button class="btn-secondary" type="button" (click)="showLogin()">Back to login</button>
+        </section>
+
+        <section *ngIf="showForgot" class="form-section">
+          <label class="field-label" for="forgotEmail">Email</label>
+          <input id="forgotEmail" type="email" name="forgotEmail" [(ngModel)]="forgotEmail" class="field-input" placeholder="Enter your account email" autocomplete="email" />
+
+          <button class="btn-primary" (click)="forgotPassword()" [disabled]="loading || !forgotEmail">Send reset PIN</button>
+
+          <div *ngIf="forgotPinSent" class="reset-grid">
+            <label class="field-label" for="forgotPin">Reset PIN</label>
+            <input id="forgotPin" type="text" name="forgotPin" [(ngModel)]="forgotPin" class="field-input" placeholder="123456" inputmode="numeric" />
+
+            <label class="field-label" for="forgotNewPassword">New password</label>
+            <div class="password-row">
+              <input id="forgotNewPassword" [type]="showResetPassword ? 'text' : 'password'" name="forgotNewPassword" [(ngModel)]="forgotNewPassword" class="field-input" placeholder="Enter your new password" autocomplete="new-password" />
+              <button type="button" class="password-toggle" (click)="togglePassword('reset')">{{ showResetPassword ? 'Hide' : 'Show' }}</button>
+            </div>
+            <button class="btn-primary" (click)="resetPassword()" [disabled]="loading || !forgotPin || !forgotNewPassword">Reset password</button>
+          </div>
+
+          <button class="btn-secondary" type="button" (click)="showLogin()">Back to login</button>
+        </section>
+
+        <div *ngIf="message" class="status success">{{ message }}</div>
+        <div *ngIf="error" class="status error">{{ error }}</div>
+      </div>
+    </main>
+  </div>
+
+  <section *ngIf="isAuthenticated" class="dashboard-page">
+    <nav class="bg-white/95 border-b border-slate-200/70 sticky top-0 z-10">
+      <div class="w-full px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.35em] text-indigo-600 font-semibold">FounderLink</p>
+          <h2 class="text-2xl font-semibold text-slate-900">Founder Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <button
+              type="button"
+              class="w-10 h-10 rounded-full border border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 transition cursor-pointer flex items-center justify-center relative"
+              (click)="toggleNotificationsPanel()"
+              aria-label="Notifications">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span *ngIf="unreadNotificationCount" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-semibold flex items-center justify-center">
+                {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+              </span>
+            </button>
+
+            <div *ngIf="showNotificationsPanel" class="absolute right-0 mt-2 w-[340px] max-w-[90vw] rounded-2xl border border-slate-200 bg-white shadow-lg p-3 z-30">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-semibold text-slate-900">Notifications</p>
+                <div class="flex items-center gap-2">
+                  <button type="button" class="text-xs font-semibold text-slate-600 hover:text-slate-800" (click)="loadNotifications(true)">
+                    Refresh
+                  </button>
+                  <button
+                    type="button"
+                    class="text-xs font-semibold text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+                    (click)="markAllNotificationsAsRead()"
+                    [disabled]="!unreadNotificationCount || notificationsMarkAllLoading">
+                    {{ notificationsMarkAllLoading ? 'Marking...' : 'Mark All Read' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="mt-3 max-h-80 overflow-y-auto space-y-2">
+                <div *ngIf="notificationsLoading" class="text-sm text-slate-500">Loading notifications...</div>
+                <div *ngIf="notificationsError" class="text-sm text-rose-600">{{ notificationsError }}</div>
+                <div *ngIf="!notificationsLoading && !notifications.length" class="text-sm text-slate-500">No notifications yet.</div>
+
+                <div *ngFor="let notification of notifications" class="rounded-xl border px-3 py-2"
+                     [ngClass]="notification.read ? 'border-slate-200 bg-white' : 'border-indigo-200 bg-indigo-50/50'">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.15em] text-slate-500">{{ notification.type }}</p>
+                      <p class="text-sm text-slate-800 mt-1">{{ notification.message }}</p>
+                      <p class="text-[11px] text-slate-500 mt-1" *ngIf="notification.createdAt">{{ notification.createdAt | date:'medium' }}</p>
+                    </div>
+                    <button
+                      *ngIf="!notification.read"
+                      type="button"
+                      class="text-xs font-semibold text-indigo-600 hover:text-indigo-500 whitespace-nowrap"
+                      (click)="markNotificationAsRead(notification.id)"
+                      [disabled]="notificationMarkingId === notification.id">
+                      {{ notificationMarkingId === notification.id ? 'Marking...' : 'Mark Read' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 text-right">
+                <button type="button" class="text-xs font-semibold text-slate-600 hover:text-slate-800" (click)="closeNotificationsPanel()">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <p class="text-sm font-semibold text-slate-900">{{ userDisplayName }}</p>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">{{ roleLabel }}</p>
+          </div>
+          <details class="relative">
+            <summary class="list-none w-10 h-10 rounded-full border border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 transition cursor-pointer flex items-center justify-center">
+              <span class="text-lg leading-none">▾</span>
+            </summary>
+            <div class="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-200 bg-white shadow-lg p-2 z-20">
+              <button class="w-full text-left px-3 py-2 rounded-xl text-sm text-slate-700 hover:bg-slate-100" (click)="openProfile()">
+                Profile
+              </button>
+              <button class="w-full text-left px-3 py-2 rounded-xl text-sm text-rose-600 hover:bg-rose-50" (click)="logout()">
+                Logout
+              </button>
+            </div>
+          </details>
+        </div>
+      </div>
+    </nav>
+
+    <div class="w-full px-6 py-10">
+      <ng-template #messagesSection>
+        <section id="messages" class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-semibold text-slate-900">Messages</h2>
+              <p class="text-slate-500 mt-1">Pick a teammate to view all conversations.</p>
+            </div>
+            <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="loadMessagePartners()">
+              {{ messagePartnersLoading ? 'Loading...' : 'Refresh' }}
+            </button>
+          </div>
+
+          <div class="grid gap-4 lg:grid-cols-[280px,1fr]">
+            <div class="rounded-3xl border border-slate-200/70 bg-white p-4">
+              <input type="text" [(ngModel)]="messageSearch" name="messageSearch" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Search conversations..." />
+              <div class="mt-4 space-y-2">
+                <div *ngIf="messagePartnersLoading" class="text-sm text-slate-500">Loading conversations...</div>
+                <div *ngIf="!messagePartnersLoading && !messagePartners.length" class="text-sm text-slate-500">No messages yet.</div>
+                <button *ngFor="let partnerId of getFilteredMessagePartners()" class="w-full text-left rounded-2xl border px-4 py-3 text-sm transition"
+                        [ngClass]="partnerId === messagePartnerId ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'"
+                        (click)="setActiveConversation(partnerId)">
+                  <p class="font-semibold">{{ getUserName(partnerId) }}</p>
+                  <p class="text-xs text-slate-500">Tap to view messages</p>
+                </button>
+              </div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200/70 bg-white p-6">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm text-slate-500">Chatting with</p>
+                  <p class="text-lg font-semibold text-slate-900">{{ messagePartnerId ? getUserName(messagePartnerId) : 'Select a conversation' }}</p>
+                </div>
+              </div>
+
+              <div class="mt-4 h-72 overflow-y-auto rounded-2xl border border-slate-200/70 bg-slate-50 p-4 space-y-3">
+                <div *ngIf="messageLoading" class="text-sm text-slate-500">Loading conversation...</div>
+                <div *ngIf="messageError" class="text-sm text-rose-600">{{ messageError }}</div>
+                <div *ngIf="!messageLoading && !messageThread.length" class="text-sm text-slate-500">No messages yet.</div>
+                <div *ngFor="let msg of messageThread" class="flex" [ngClass]="msg.senderId === userId ? 'justify-end' : 'justify-start'">
+                  <div class="max-w-xs rounded-2xl px-4 py-2 text-sm"
+                       [ngClass]="msg.senderId === userId ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'">
+                    <p>{{ msg.content }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 flex gap-3">
+                <input type="text" [(ngModel)]="messageText" name="messageText" class="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Write a message..." />
+                <button class="px-5 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-60" (click)="sendMessage()" [disabled]="messageSending || !messagePartnerId">
+                  {{ messageSending ? 'Sending...' : 'Send' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-template>
+      <ng-container *ngIf="isFounder">
+      <div class="space-y-10">
+      <section id="dashboard" class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200/70 p-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Welcome back</p>
+            <h1 class="text-3xl font-semibold text-slate-900">Hi {{ userDisplayName }}</h1>
+            <p class="text-slate-500 mt-2">Track startup momentum, invitations, and funding goals in one place.</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button *ngIf="isFounder" class="px-5 py-2.5 rounded-full bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-500 transition" (click)="toggleCreateForm()">
+              + Create Startup
+            </button>
+            <button class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="loadStartups()" [disabled]="startupsLoading">
+              {{ startupsLoading ? 'Refreshing...' : 'Refresh list' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-8">
+          <div class="rounded-2xl bg-slate-50 p-5 border border-slate-200/70">
+            <p class="text-xs uppercase tracking-[0.25em] text-slate-500">My Startups</p>
+            <p class="text-2xl font-semibold text-slate-900 mt-2">{{ founderStartupCount }}</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-5 border border-slate-200/70">
+            <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Total Investments</p>
+            <p class="text-2xl font-semibold text-slate-900 mt-2">{{ founderInvestmentCount }}</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-5 border border-slate-200/70">
+            <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Total Amount Invested</p>
+            <p class="text-2xl font-semibold text-slate-900 mt-2">₹{{ founderTotalInvestedAmount | number }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="message" class="status success mt-6">{{ message }}</div>
+        <div *ngIf="error" class="status error mt-6">{{ error }}</div>
+      </section>
+
+      <section id="startups" *ngIf="isFounder" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-900">My Startups</h2>
+            <p class="text-slate-500 mt-1">Manage your active ventures and funding goals.</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold text-slate-900">Available Cofounders</h3>
+              <p class="text-slate-500 mt-1">Select cofounders to invite to your startup team.</p>
+            </div>
+            <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="loadCofounders()">
+              {{ cofoundersLoading ? 'Loading...' : 'Refresh' }}
+            </button>
+          </div>
+          <div *ngIf="cofoundersError" class="status error mt-4">{{ cofoundersError }}</div>
+          <div *ngIf="!cofounders.length && !cofoundersLoading" class="text-sm text-slate-500 mt-4">
+            No cofounders available right now.
+          </div>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" *ngIf="cofounders.length">
+            <div *ngFor="let cofounder of pagedCofounders" class="rounded-2xl border border-slate-200/70 bg-slate-50 p-4 text-sm">
+              <p class="font-semibold text-slate-900">{{ cofounder.name }}</p>
+              <p class="text-xs text-slate-500">{{ cofounder.email }}</p>
+              <p class="text-xs text-slate-500 mt-1">ID: {{ cofounder.id }}</p>
+              <p class="text-xs text-slate-600 mt-1" *ngIf="getCofounderExpertise(cofounder)">
+                Expertise: {{ getCofounderExpertise(cofounder) }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-sm text-slate-500" *ngIf="cofounders.length">
+            <span>{{ cofounderRangeLabel }}</span>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="rounded-full border border-slate-300 px-3 py-1.5 font-semibold text-slate-700 hover:border-slate-400 hover:text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50"
+                (click)="prevCofounderPage()"
+                [disabled]="cofounderPage === 1">
+                Previous
+              </button>
+              <span class="text-xs text-slate-400">Page {{ cofounderPage }} / {{ cofounderTotalPages }}</span>
+              <button
+                type="button"
+                class="rounded-full border border-slate-300 px-3 py-1.5 font-semibold text-slate-700 hover:border-slate-400 hover:text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50"
+                (click)="nextCofounderPage()"
+                [disabled]="cofounderPage === cofounderTotalPages">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold text-slate-900">Interested Cofounders</h3>
+              <p class="text-slate-500 mt-1">Review cofounder interest requests and let them join your startup.</p>
+            </div>
+            <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="loadFounderInterestRequests()">
+              {{ founderInterestRequestsLoading ? 'Loading...' : 'Refresh' }}
+            </button>
+          </div>
+
+          <div *ngIf="founderInterestRequestsError" class="status error mt-4">{{ founderInterestRequestsError }}</div>
+          <div *ngIf="!founderInterestRequests.length && !founderInterestRequestsLoading" class="text-sm text-slate-500 mt-4">
+            No cofounder interest requests yet.
+          </div>
+
+          <div class="mt-4 grid gap-4 sm:grid-cols-2" *ngIf="founderInterestRequests.length">
+            <div *ngFor="let interest of founderInterestRequests" class="rounded-2xl border border-slate-200/70 bg-slate-50 p-4 text-sm">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <p class="font-semibold text-slate-900">{{ getUserName(interest.cofounderId) }}</p>
+                  <p class="text-xs text-slate-500 mt-1">Startup: {{ getStartupNameById(interest.startupId) }}</p>
+                  <p class="text-xs text-slate-500 mt-1" *ngIf="getInterestCofounderExpertise(interest)">Expertise: {{ getInterestCofounderExpertise(interest) }}</p>
+                </div>
+                <span class="text-xs font-semibold uppercase"
+                      [ngClass]="upper(interest.status) === 'ACCEPTED' ? 'text-emerald-600' : upper(interest.status) === 'REJECTED' ? 'text-rose-600' : 'text-indigo-600'">
+                  {{ interest.status }}
+                </span>
+              </div>
+
+              <div class="mt-3 flex flex-wrap gap-2" *ngIf="getInterestCofounderSkills(interest).length">
+                <span *ngFor="let skill of getInterestCofounderSkills(interest)" class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
+                  {{ skill }}
+                </span>
+              </div>
+
+              <div class="mt-4" *ngIf="upper(interest.status) === 'INTERESTED'">
+                <label class="text-xs font-semibold text-slate-700">Assign Role</label>
+                <select [(ngModel)]="founderInterestRoleById[interest.id]" name="founderInterestRole{{interest.id}}" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none focus:border-indigo-500">
+                  <option value="CTO">CTO</option>
+                  <option value="CPO">CPO</option>
+                  <option value="MARKETING_HEAD">Marketing Head</option>
+                  <option value="ENGINEERING_LEAD">Engineering Lead</option>
+                </select>
+                <div class="flex gap-2 mt-3">
+                  <button class="flex-1 px-3 py-2 rounded-full bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500 transition" (click)="acceptInterestRequest(interest)">
+                    Let Join
+                  </button>
+                  <button class="flex-1 px-3 py-2 rounded-full border border-slate-300 text-slate-700 text-xs font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="rejectInterestRequest(interest)">
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="showCreateForm" class="fixed inset-0 z-40 flex items-start justify-center bg-slate-900/60 px-4 py-8 overflow-y-auto">
+          <div class="bg-white w-full max-w-3xl rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="text-xl font-semibold text-slate-900">Create a new startup</h3>
+                <p class="text-slate-500 mt-1">Share the core details so investors can discover your vision.</p>
+              </div>
+              <button class="text-slate-400 hover:text-slate-600" (click)="toggleCreateForm()">Close</button>
+            </div>
+
+            <form class="grid gap-4 mt-6">
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Name</label>
+                <input type="text" [(ngModel)]="startupModel.name" name="startupName" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="e.g., NovaPay" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Description</label>
+                <textarea [(ngModel)]="startupModel.description" name="startupDescription" rows="3" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="A one-line overview of the startup."></textarea>
+              </div>
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Industry</label>
+                  <input type="text" [(ngModel)]="startupModel.industry" name="startupIndustry" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="FinTech, HealthTech, SaaS" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Funding Goal</label>
+                  <input type="number" [(ngModel)]="startupModel.fundingGoal" name="startupFundingGoal" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="5000000" />
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Problem Statement</label>
+                <textarea [(ngModel)]="startupModel.problemStatement" name="startupProblemStatement" rows="3" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Describe the pain point you are solving."></textarea>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Solution</label>
+                <textarea [(ngModel)]="startupModel.solution" name="startupSolution" rows="3" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Explain the solution and why it is compelling."></textarea>
+              </div>
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Stage</label>
+                  <select [(ngModel)]="startupModel.stage" name="startupStage" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none">
+                    <option value="IDEA">Idea</option>
+                    <option value="MVP">MVP</option>
+                    <option value="EARLY_TRACTION">Early Traction</option>
+                    <option value="SCALING">Scaling</option>
+                  </select>
+                </div>
+              </div>
+
+              <div *ngIf="createFormError" class="status error">{{ createFormError }}</div>
+              <div *ngIf="createFormSuccess" class="status success">{{ createFormSuccess }}</div>
+
+              <div class="flex flex-wrap gap-3">
+                <button type="button" class="px-5 py-2.5 rounded-full bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-500 transition" (click)="createStartup()" [disabled]="createLoading">
+                  {{ createLoading ? 'Creating...' : 'Create Startup' }}
+                </button>
+                <button type="button" class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="toggleCreateForm()">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+    <div *ngIf="showCreateForm" class="fixed inset-0 z-30" (click)="toggleCreateForm()"></div>
+
+        <div *ngIf="!myStartups.length && !startupsLoading" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+          No startups created yet. Start by creating your first startup.
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2">
+          <article *ngFor="let startup of pagedMyStartups" class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70 hover:shadow-lg hover:-translate-y-1 transition">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="text-xl font-semibold text-slate-900">{{ startup.name }}</h3>
+                <p class="text-slate-500 mt-2">{{ startup.description }}</p>
+              </div>
+              <span class="text-xs uppercase tracking-[0.25em] text-indigo-600 font-semibold">Founder</span>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <span *ngFor="let badge of getBadges(startup)" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ badge }}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-6 text-sm">
+              <div>
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Funding Goal</p>
+                <p class="text-lg font-semibold text-slate-900 mt-1">₹{{ startup.fundingGoal | number }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Stage</p>
+                <p class="text-lg font-semibold text-slate-900 mt-1">{{ startup.stage }}</p>
+              </div>
+            </div>
+            <div class="mt-5">
+              <div class="flex items-center justify-between text-xs text-slate-500">
+                <span class="text-emerald-600 font-semibold">Invested ₹{{ getStartupInvestedAmount(startup.id) | number }}</span>
+                <span class="text-emerald-600 font-semibold">{{ getFundingProgressLabel(startup) }}</span>
+              </div>
+              <div class="mt-2 h-2 rounded-full bg-slate-100">
+                <div class="h-2 rounded-full bg-emerald-500" [style.width.%]="getFundingProgressWidth(startup)"></div>
+              </div>
+            </div>
+            <div class="mt-5">
+              <button class="w-full px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="openInviteModal(startup.id)">
+                Invite Cofounder
+              </button>
+            </div>
+
+            <div class="mt-6 border-t border-slate-200/80 pt-4">
+              <div class="flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Investments</h4>
+                <button class="text-xs font-semibold text-indigo-600 hover:text-indigo-500" (click)="loadInvestmentsForStartup(startup.id)">
+                  {{ investmentsLoading[startup.id] ? 'Loading...' : 'Refresh' }}
+                </button>
+              </div>
+              <div *ngIf="!investmentsByStartup[startup.id]?.length && !investmentsLoading[startup.id]" class="text-sm text-slate-500 mt-3">
+                No investments yet.
+              </div>
+              <div class="mt-3 space-y-2" *ngIf="investmentsByStartup[startup.id]?.length">
+                <div *ngFor="let investment of getRecentInvestmentsForStartup(startup.id)" class="rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <p class="font-semibold text-slate-900">{{ getInvestorName(investment.investorId) }}</p>
+                      <p class="text-xs font-semibold mt-1" [ngClass]="getInvestmentStatusClass(investment.status)">
+                        {{ investment.status }}
+                      </p>
+                    </div>
+                    <p class="font-semibold text-slate-900">₹{{ investment.amount | number }}</p>
+                  </div>
+                  <div class="flex gap-2 mt-3" *ngIf="upper(investment.status) === 'PENDING'">
+                    <button class="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500" (click)="approveInvestment(investment)">Approve</button>
+                    <button class="px-3 py-1 rounded-full border border-slate-300 text-slate-700 text-xs font-semibold hover:border-slate-400" (click)="rejectInvestment(investment)">Reject</button>
+                  </div>
+                </div>
+                <button class="mt-3 w-full px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 text-sm font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="openInvestmentHistory(startup.id)">
+                  View History
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-6 border-t border-slate-200/80 pt-4">
+              <div class="flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Team Members</h4>
+                <button class="text-xs font-semibold text-indigo-600 hover:text-indigo-500" (click)="openTeamMembers(startup.id)">
+                  View Team
+                </button>
+              </div>
+              <div class="text-sm text-slate-500 mt-3">
+                View cofounders who have joined this startup.
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="flex justify-center items-center gap-4 mt-6" *ngIf="myStartups.length > founderPageSize">
+          <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition"
+                  (click)="prevFounderPage()" [disabled]="founderPage === 1">
+            Previous
+          </button>
+          <span class="text-sm text-slate-600">Page {{ founderPage }} of {{ founderTotalPages }}</span>
+          <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition"
+                  (click)="nextFounderPage()" [disabled]="founderPage === founderTotalPages">
+            Next
+          </button>
+        </div>
+      </section>
+
+      <section *ngIf="isInvestor" class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold text-slate-900">Explore Startups</h2>
+          <p class="text-slate-500 mt-1">Find new investment opportunities that fit your thesis.</p>
+        </div>
+
+        <div *ngIf="!startups.length && !startupsLoading" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+          No startups available right now. Check back soon.
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2">
+          <article *ngFor="let startup of startups" class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70 hover:shadow-lg hover:-translate-y-1 transition">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 class="text-xl font-semibold text-slate-900">{{ startup.name }}</h3>
+                <p class="text-slate-500 mt-2">{{ startup.description }}</p>
+              </div>
+              <span class="text-xs uppercase tracking-[0.25em] text-emerald-600 font-semibold">Live</span>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <span *ngFor="let badge of getBadges(startup)" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ badge }}</span>
+            </div>
+            <div class="grid gap-3 mt-6 text-sm text-slate-600">
+              <div class="flex items-center justify-between">
+                <span>Funding goal</span>
+                <span class="font-semibold text-slate-900">₹{{ startup.fundingGoal | number }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Founder</span>
+                <span class="font-semibold text-slate-900">{{ getFounderName(startup) }}</span>
+              </div>
+            </div>
+            <button class="mt-6 w-full px-5 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition" (click)="openInvestModal(startup)">Invest</button>
+          </article>
+        </div>
+
+        <div class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold text-slate-900">My Investments</h3>
+              <p class="text-slate-500 mt-1">Track approvals and continue to payment after founder approval.</p>
+            </div>
+            <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="loadInvestorInvestments()">
+              {{ investorInvestmentsLoading ? 'Loading...' : 'Refresh' }}
+            </button>
+          </div>
+
+          <div *ngIf="!investorInvestments.length && !investorInvestmentsLoading" class="text-sm text-slate-500 mt-4">
+            No investments yet.
+          </div>
+          <div class="mt-4 space-y-3" *ngIf="investorInvestments.length">
+            <div *ngFor="let investment of investorInvestments" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm">
+              <div>
+                <p class="font-semibold text-slate-900">{{ getStartupNameById(investment.startupId) }}</p>
+                <div class="mt-1 inline-flex items-center gap-2 text-xs">
+                  <span class="px-2.5 py-1 rounded-full font-semibold"
+                        [ngClass]="investment.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
+                                  investment.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                                  investment.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
+                                  'bg-slate-100 text-slate-600'">
+                    {{ investment.status }}
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <p class="font-semibold text-slate-900">₹{{ investment.amount | number }}</p>
+                <button *ngIf="investment.status === 'APPROVED'" class="px-4 py-1.5 rounded-full bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 disabled:opacity-60" (click)="requestPaymentOrder(investment)" [disabled]="paymentLoading">
+                  {{ paymentLoading ? 'Processing...' : 'Pay Now' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="team" *ngIf="isCofounder" class="space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold text-slate-900">Cofounder Hub</h2>
+          <p class="text-slate-500 mt-1">Review invitations and track the startups you have joined.</p>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-2">
+          <div class="space-y-4">
+            <h3 class="text-xl font-semibold text-slate-900">Invitations</h3>
+            <div *ngIf="cofounderInvitationsError" class="status error">{{ cofounderInvitationsError }}</div>
+            <div *ngIf="cofounderInvitationsLoading" class="text-sm text-slate-500">Loading invitations...</div>
+            <div *ngIf="!cofounderInvitations.length && !cofounderInvitationsLoading" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+              No invitations waiting right now.
+            </div>
+            <article *ngFor="let invite of cofounderInvitations" class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70 hover:shadow-lg hover:-translate-y-1 transition">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <h4 class="text-lg font-semibold text-slate-900">{{ getStartupNameById(invite.startupId) }}</h4>
+                  <p class="text-slate-500 mt-2">Startup ID: {{ invite.startupId }}</p>
+                </div>
+                <span class="text-xs uppercase tracking-[0.25em] text-indigo-600 font-semibold">Invite</span>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-4">
+                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ invite.role }}</span>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold"
+                      [ngClass]="invite.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
+                                invite.status === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-700' :
+                                invite.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
+                                'bg-slate-100 text-slate-600'">
+                  {{ invite.status }}
+                </span>
+              </div>
+              <p class="text-sm text-slate-500 mt-4">Founder: <span class="font-semibold text-slate-900">{{ getUserName(invite.founderId) }}</span></p>
+              <button class="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="toggleInvitationDetails(invite.id)">
+                {{ invitationDetailsOpen[invite.id] ? 'Hide Details' : 'View Details' }}
+              </button>
+              <div *ngIf="invitationDetailsOpen[invite.id]" class="mt-3 rounded-2xl border border-slate-200/70 bg-slate-50 p-4 text-sm">
+                <ng-container *ngIf="getStartupDetails(invite.startupId) as details; else detailsLoading">
+                  <p class="font-semibold text-slate-900">{{ details.name }}</p>
+                  <p class="text-slate-500 mt-2">{{ details.description }}</p>
+                  <div class="flex flex-wrap gap-2 mt-3">
+                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ details.industry }}</span>
+                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ details.stage }}</span>
+                  </div>
+                  <p class="text-slate-500 mt-3">Funding Goal: <span class="font-semibold text-slate-900">₹{{ details.fundingGoal | number }}</span></p>
+                  <p class="text-slate-500 mt-2">Problem: <span class="font-semibold text-slate-900">{{ details.problemStatement || '—' }}</span></p>
+                  <p class="text-slate-500 mt-1">Solution: <span class="font-semibold text-slate-900">{{ details.solution || '—' }}</span></p>
+                </ng-container>
+                <ng-template #detailsLoading>
+                  <p class="text-slate-500">Loading startup details...</p>
+                </ng-template>
+              </div>
+              <div class="flex gap-3 mt-6" *ngIf="invite.status === 'PENDING'">
+                <button class="flex-1 px-4 py-2.5 rounded-full bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition" (click)="acceptInvitation(invite)">Accept</button>
+                <button class="flex-1 px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="rejectInvitation(invite)">Reject</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-xl font-semibold text-slate-900">Joined Startups</h3>
+            <div *ngIf="cofounderActiveTeamsError" class="status error">{{ cofounderActiveTeamsError }}</div>
+            <div *ngIf="cofounderActiveTeamsLoading" class="text-sm text-slate-500">Loading active teams...</div>
+            <div *ngIf="!cofounderActiveTeams.length && !cofounderActiveTeamsLoading" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+              You have not joined any startups yet.
+            </div>
+            <div class="grid gap-4">
+              <article *ngFor="let team of cofounderActiveTeams" class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70 hover:shadow-lg hover:-translate-y-1 transition">
+                <h4 class="text-lg font-semibold text-slate-900">{{ getStartupNameById(team.startupId) }}</h4>
+                <p class="text-slate-500 mt-2" *ngIf="getStartupDetails(team.startupId) as details">{{ details.description }}</p>
+                <p class="text-slate-500 mt-2" *ngIf="!getStartupDetails(team.startupId)">Startup ID: {{ team.startupId }}</p>
+                <div class="flex flex-wrap gap-2 mt-4">
+                  <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ team.role }}</span>
+                  <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">Active</span>
+                </div>
+                <div class="flex gap-3 mt-6">
+                  <button class="flex-1 px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="openTeamMembers(team.startupId)">
+                    View Team Members
+                  </button>
+                  <button class="flex-1 px-4 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+                          [disabled]="!getStartupDetails(team.startupId)?.founderId"
+                          (click)="openMessageModal(team.startupId, getStartupDetails(team.startupId)?.founderId)">
+                    Message Founder
+                  </button>
+                </div>
+              </article>
+            </div>
+            <div class="mt-6">
+              <h3 class="text-xl font-semibold text-slate-900">History</h3>
+              <div *ngIf="cofounderHistoryError" class="status error mt-3">{{ cofounderHistoryError }}</div>
+              <div *ngIf="cofounderHistoryLoading" class="text-sm text-slate-500 mt-3">Loading history...</div>
+              <div *ngIf="!cofounderHistory.length && !cofounderHistoryLoading" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500 mt-3">
+                No history yet.
+              </div>
+              <div class="mt-3 space-y-3" *ngIf="cofounderHistory.length">
+                <div *ngFor="let history of cofounderHistory" class="rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm">
+                  <p class="font-semibold text-slate-900">{{ getStartupNameById(history.startupId) }}</p>
+                  <p class="text-xs text-slate-500">Role: {{ history.role }} • Left: {{ history.leftAt || 'Active' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <ng-container *ngTemplateOutlet="messagesSection"></ng-container>
+      </div>
+      </ng-container>
+
+      <ng-container *ngIf="isInvestor">
+        <app-investor-dashboard
+          [userDisplayName]="userDisplayName"
+          [startups]="startups.length ? startups : publicStartups"
+          [investments]="investorInvestments"
+          [loading]="startupsLoading"
+          [getStartupName]="getStartupNameById.bind(this)"
+          (refresh)="loadStartups()"
+          (discover)="handleInvestorDiscover()"
+          (invest)="openInvestModal($event)"
+          (pay)="requestPaymentOrder($event)"
+          (refreshInvestments)="loadInvestorInvestments()"
+        ></app-investor-dashboard>
+        <ng-container *ngTemplateOutlet="messagesSection"></ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="isCofounder">
+        <app-cofounder-dashboard
+          [userDisplayName]="userDisplayName"
+          [invitations]="cofounderInvitations"
+          [invitationsLoading]="cofounderInvitationsLoading"
+          [invitationsError]="cofounderInvitationsError"
+          [activeTeams]="cofounderActiveTeams"
+          [activeTeamsLoading]="cofounderActiveTeamsLoading"
+          [activeTeamsError]="cofounderActiveTeamsError"
+          [opportunities]="cofounderOpportunities"
+          [opportunitiesLoading]="cofounderOpportunitiesLoading"
+          [opportunitiesError]="cofounderOpportunitiesError"
+          [myInterests]="cofounderMyInterests"
+          [myInterestsLoading]="cofounderMyInterestsLoading"
+          [myInterestsError]="cofounderMyInterestsError"
+          [getStartupName]="getStartupNameById.bind(this)"
+          (refreshInvites)="loadCofounderInvitations()"
+          (acceptInvite)="acceptInvitation($event)"
+          (rejectInvite)="rejectInvitation($event)"
+          (browse)="handleCofounderBrowse()"
+          (markInterested)="markStartupInterested($event)"
+          (refreshInterests)="loadCofounderMyInterests()"
+        ></app-cofounder-dashboard>
+        <ng-container *ngTemplateOutlet="messagesSection"></ng-container>
+      </ng-container>
+    </div>
+
+    <div *ngIf="showInviteModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">
+      <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-900">Invite Cofounder</h3>
+            <p class="text-slate-500 mt-1">Select a cofounder and role for {{ selectedStartupId ? getStartupNameById(selectedStartupId) : 'this startup' }}.</p>
+          </div>
+          <button class="text-slate-400 hover:text-slate-600" (click)="closeInviteModal()">Close</button>
+        </div>
+
+        <div class="mt-4 space-y-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Filter Domain</label>
+              <input
+                type="text"
+                [(ngModel)]="cofounderFilterDomain"
+                (input)="applyCofounderFilters()"
+                name="inviteFilterDomain"
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                placeholder="e.g., AI" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Minimum Years</label>
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="cofounderFilterMinYears"
+                (input)="applyCofounderFilters()"
+                name="inviteFilterMinYears"
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                placeholder="e.g., 2" />
+            </div>
+          </div>
+          <div>
+            <button
+              type="button"
+              class="text-sm font-semibold text-slate-600 hover:text-slate-800"
+              (click)="clearCofounderFilters()">
+              Clear Filters
+            </button>
+          </div>
+          <div>
+            <label class="text-sm font-semibold text-slate-700">Cofounder</label>
+            <select [(ngModel)]="invitedUserId" (change)="invitedUserId = $any($event.target).value ? Number($any($event.target).value) : null" name="invitedUserId" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none">
+              <option value="">Select cofounder</option>
+              <option *ngFor="let cofounder of filteredCofounders" [value]="cofounder.id">{{ cofounder.name }} ({{ cofounder.email }})</option>
+            </select>
+            <p class="text-xs text-slate-500 mt-2" *ngIf="cofounders.length && !filteredCofounders.length">No cofounders match the selected filters.</p>
+          </div>
+          <div>
+            <label class="text-sm font-semibold text-slate-700">Role</label>
+            <select [(ngModel)]="invitedRole" name="invitedRole" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none">
+              <option *ngFor="let role of roleOptions" [ngValue]="role.value">{{ role.label }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div *ngIf="cofoundersLoading" class="text-sm text-slate-500 mt-3">Loading cofounders...</div>
+        <div *ngIf="inviteError" class="status error mt-4">{{ inviteError }}</div>
+        <div *ngIf="inviteSuccess" class="status success mt-4">{{ inviteSuccess }}</div>
+
+        <div class="flex gap-3 mt-6">
+          <button class="flex-1 px-4 py-2.5 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition" (click)="sendInvite()" [disabled]="inviteLoading">
+            {{ inviteLoading ? 'Sending...' : 'Send Invite' }}
+          </button>
+          <button class="flex-1 px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="closeInviteModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showInviteModal" class="fixed inset-0 z-30" (click)="closeInviteModal()"></div>
+
+    <div *ngIf="showInvestModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">
+      <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-900">Confirm investment</h3>
+            <p class="text-slate-500 mt-1">You are about to invest in {{ selectedStartup?.name }}.</p>
+          </div>
+          <button class="text-slate-400 hover:text-slate-600" (click)="closeInvestModal()">Close</button>
+        </div>
+        <div class="mt-4 rounded-2xl bg-slate-50 p-4">
+          <p class="text-sm text-slate-600">Funding goal</p>
+          <p class="text-lg font-semibold text-slate-900">₹{{ selectedStartup?.fundingGoal | number }}</p>
+          <p class="text-sm text-slate-500 mt-2">Founder: <span class="font-semibold text-slate-900">{{ selectedStartup ? getFounderName(selectedStartup) : '' }}</span></p>
+        </div>
+        <div class="mt-4">
+          <label class="text-sm font-semibold text-slate-700">Investment amount</label>
+          <input #investAmountField type="number" [value]="investAmount" (input)="onInvestAmountChange(investAmountField.value)" name="investAmount" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Minimum 1000" />
+        </div>
+
+        <div *ngIf="investError" class="status error mt-4">{{ investError }}</div>
+        <div *ngIf="investSuccess" class="status success mt-4">{{ investSuccess }}</div>
+
+        <div class="flex gap-3 mt-6">
+          <button class="flex-1 px-4 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition invest-cta" (click)="confirmInvestFromInput(investAmountField.value)" [disabled]="investLoading">
+    Invest
+  </button>
+          <button class="flex-1 px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="closeInvestModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showInvestModal" class="fixed inset-0 z-30" (click)="closeInvestModal()"></div>
+
+    <div *ngIf="showTeamModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">
+      <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-900">Team Members</h3>
+            <p class="text-slate-500 mt-1">People currently working on this startup.</p>
+          </div>
+          <button class="text-slate-400 hover:text-slate-600" (click)="closeTeamMembers()">Close</button>
+        </div>
+        <div class="mt-4 space-y-3">
+          <div *ngIf="selectedTeamStartupId && teamMembersLoading[selectedTeamStartupId]" class="text-sm text-slate-500">
+            Loading team members...
+          </div>
+          <div *ngIf="selectedTeamStartupId && !getTeamMembers(selectedTeamStartupId).length" class="text-sm text-slate-500">
+            No team members available.
+          </div>
+          <div *ngFor="let member of selectedTeamStartupId ? getTeamMembers(selectedTeamStartupId) : []" class="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm">
+            <div>
+              <p class="font-semibold text-slate-900">{{ getUserName(member.userId) }}</p>
+              <p class="text-xs text-slate-500">{{ member.role }}</p>
+            </div>
+            <button *ngIf="member.userId !== userId" class="px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800"
+                    (click)="openMessageModal(selectedTeamStartupId!, member.userId)">
+              Message
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showTeamModal" class="fixed inset-0 z-30" (click)="closeTeamMembers()"></div>
+
+    <div *ngIf="showInvestmentHistoryModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">
+      <div class="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-900">Investment History</h3>
+            <p class="text-slate-500 mt-1">All investments for {{ selectedInvestmentHistoryStartupId ? getStartupNameById(selectedInvestmentHistoryStartupId) : 'this startup' }}.</p>
+          </div>
+          <button class="text-slate-400 hover:text-slate-600" (click)="closeInvestmentHistory()">Close</button>
+        </div>
+        <div class="mt-4 space-y-3 max-h-[60vh] overflow-y-auto">
+          <div *ngIf="selectedInvestmentHistoryStartupId && !getSortedInvestmentsForStartup(selectedInvestmentHistoryStartupId).length" class="text-sm text-slate-500">
+            No investments yet.
+          </div>
+          <div *ngFor="let investment of selectedInvestmentHistoryStartupId ? getSortedInvestmentsForStartup(selectedInvestmentHistoryStartupId) : []" class="rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="font-semibold text-slate-900">{{ getInvestorName(investment.investorId) }}</p>
+                <p class="text-xs font-semibold mt-1" [ngClass]="getInvestmentStatusClass(investment.status)">
+                  {{ investment.status }}
+                </p>
+              </div>
+              <p class="font-semibold text-slate-900">₹{{ investment.amount | number }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showInvestmentHistoryModal" class="fixed inset-0 z-30" (click)="closeInvestmentHistory()"></div>
+
+    <div *ngIf="showProfileModal" class="fixed inset-0 z-40 flex items-start justify-center bg-slate-900/60 px-4 py-8 overflow-y-auto">
+      <div class="bg-white w-full max-w-3xl rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-900">Profile</h3>
+            <p class="text-slate-500 mt-1">{{ userDisplayName }}</p>
+          </div>
+          <button class="text-slate-400 hover:text-slate-600" (click)="closeProfile()">Close</button>
+        </div>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl border border-slate-200/70 bg-slate-50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Role</p>
+            <p class="text-lg font-semibold text-slate-900 mt-2">{{ roleLabel }}</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200/70 bg-slate-50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Email</p>
+            <p class="text-lg font-semibold text-slate-900 mt-2">{{ authEmail }}</p>
+          </div>
+        </div>
+
+        <div class="mt-6" *ngIf="isFounder">
+          <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Founder Stats</h4>
+          <div class="grid gap-4 sm:grid-cols-3 mt-4">
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Startups Created</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ myStartups.length }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Investments Received</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ founderInvestmentCount }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Invested</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">₹{{ founderTotalInvestedAmount | number }}</p>
+            </div>
+          </div>
+          <div class="mt-5 rounded-2xl border border-slate-200/70 bg-white p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Cofounders Working With You</p>
+            <div class="mt-3 text-sm text-slate-600" *ngIf="!getFounderTeamMembers().length">
+              No team members loaded yet. Open a startup team to load cofounders.
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2" *ngIf="getFounderTeamMembers().length">
+              <span *ngFor="let member of getFounderTeamMembers()" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                {{ member.name }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6" *ngIf="isInvestor">
+          <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Investor Stats</h4>
+          <div class="grid gap-4 sm:grid-cols-3 mt-4">
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Investments Made</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ investorInvestments.length }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Invested</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">₹{{ investorTotalInvestedAmount | number }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Startups Backed</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ investorStartupCount }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6" *ngIf="isCofounder">
+          <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Cofounder Stats</h4>
+          <div class="grid gap-4 sm:grid-cols-3 mt-4">
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Active Teams</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ cofounderActiveTeams.length }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Invitations</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ cofounderInvitations.length }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Accepted Invitations</p>
+              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ getAcceptedCofounderInvitationsCount() }}</p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-slate-200/70 bg-white p-4">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Professional Profile</p>
+                <p class="text-sm text-slate-600 mt-1">Add your skills and previous experience for founder visibility.</p>
+              </div>
+              <button
+                *ngIf="!profileLoading && hasCofounderProfile && !profileEditMode"
+                type="button"
+                class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 text-xs font-semibold hover:border-slate-400 hover:text-slate-900 transition"
+                (click)="enableProfileEdit()">
+                Edit
+              </button>
+            </div>
+
+            <div *ngIf="profileLoading" class="text-sm text-slate-500 mt-4">Loading profile details...</div>
+
+            <div class="grid gap-4 mt-4" *ngIf="!profileLoading && !profileEditMode && hasCofounderProfile">
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Skills</label>
+                <div class="mt-2 flex flex-wrap gap-2" *ngIf="profileSkillChips.length">
+                  <span *ngFor="let skill of profileSkillChips" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-100">
+                    {{ skill }}
+                  </span>
+                </div>
+                <p class="mt-2 text-sm text-slate-500" *ngIf="!profileSkillChips.length">No skills added yet.</p>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Expertise</label>
+                <p class="mt-2 text-sm text-slate-700 leading-relaxed" *ngIf="profileExperienceSummary">{{ profileExperienceSummary }}</p>
+                <p class="mt-2 text-sm text-slate-500" *ngIf="!profileExperienceSummary">No expertise added yet.</p>
+              </div>
+            </div>
+
+            <div class="grid gap-4 mt-4" *ngIf="!profileLoading && (profileEditMode || !hasCofounderProfile)">
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Skills</label>
+                <input
+                  type="text"
+                  [(ngModel)]="profileSkills"
+                  name="profileSkills"
+                  class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                  placeholder="e.g., Java, Spring Boot, Product Strategy" />
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Expertise Domain</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="profileExperienceDomain"
+                    name="profileExperienceDomain"
+                    class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                    placeholder="e.g., AI" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Experience (Years)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    [(ngModel)]="profileExperienceYears"
+                    name="profileExperienceYears"
+                    class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                    placeholder="e.g., 2" />
+                </div>
+              </div>
+              <div *ngIf="profileError" class="status error">{{ profileError }}</div>
+              <div *ngIf="profileSuccess" class="status success">{{ profileSuccess }}</div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="px-5 py-2.5 rounded-full bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-500 transition disabled:opacity-60"
+                  (click)="saveCofounderProfile()"
+                  [disabled]="profileSaving">
+                  {{ profileSaving ? 'Saving...' : 'Save Profile' }}
+                </button>
+                <button
+                  *ngIf="hasCofounderProfile"
+                  type="button"
+                  class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition"
+                  (click)="cancelProfileEdit()"
+                  [disabled]="profileSaving">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showProfileModal" class="fixed inset-0 z-30" (click)="closeProfile()"></div>
+
+    <div *ngIf="showMessageModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">
+      <div class="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-900">Messages</h3>
+            <p class="text-slate-500 mt-1">Chat with {{ messagePartnerId ? getUserName(messagePartnerId) : 'team member' }}.</p>
+          </div>
+          <button class="text-slate-400 hover:text-slate-600" (click)="closeMessageModal()">Close</button>
+        </div>
+
+        <div class="mt-4 h-64 overflow-y-auto rounded-2xl border border-slate-200/70 bg-slate-50 p-4 space-y-3">
+          <div *ngIf="messageLoading" class="text-sm text-slate-500">Loading conversation...</div>
+          <div *ngIf="messageError" class="text-sm text-rose-600">{{ messageError }}</div>
+          <div *ngIf="!messageLoading && !messageThread.length" class="text-sm text-slate-500">No messages yet.</div>
+          <div *ngFor="let msg of messageThread" class="flex" [ngClass]="msg.senderId === userId ? 'justify-end' : 'justify-start'">
+            <div class="max-w-xs rounded-2xl px-4 py-2 text-sm"
+                 [ngClass]="msg.senderId === userId ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border border-slate-200'">
+              <p>{{ msg.content }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex gap-3">
+          <input type="text" [(ngModel)]="messageText" name="messageText" class="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Write a message..." />
+          <button class="px-5 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-60" (click)="sendMessage()" [disabled]="messageSending">
+            {{ messageSending ? 'Sending...' : 'Send' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showMessageModal" class="fixed inset-0 z-30" (click)="closeMessageModal()"></div>
+
+    <div class="fixed right-6 bottom-6 z-50 space-y-3" *ngIf="toasts.length">
+      <div *ngFor="let toast of toasts" class="rounded-2xl px-4 py-3 shadow-lg border"
+           [ngClass]="toast.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                     toast.type === 'error' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                     'bg-slate-50 text-slate-700 border-slate-200'">
+        <p class="text-sm font-semibold">{{ toast.message }}</p>
+      </div>
+    </div>
+
+  </section>
+</div>

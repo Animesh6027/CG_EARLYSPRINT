@@ -1,0 +1,216 @@
+<section id="dashboard" class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200/70 p-8">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <div>
+      <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Welcome back</p>
+      <h1 class="text-3xl font-semibold text-slate-900">Hi {{ userDisplayName }}</h1>
+      <p class="text-slate-500 mt-2">Track your investment pipeline and discover new opportunities.</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <button class="px-5 py-2.5 rounded-full bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-500 transition" (click)="scrollToStartups()">
+        Discover Startups
+      </button>
+      <button class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="refresh.emit()" [disabled]="loading">
+        {{ loading ? 'Refreshing...' : 'Refresh list' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-8">
+    <div class="rounded-2xl bg-slate-50 p-5 border border-slate-200/70">
+      <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Total Startups Available</p>
+      <p class="text-2xl font-semibold text-slate-900 mt-2">{{ totalStartups }}</p>
+    </div>
+    <div class="rounded-2xl bg-slate-50 p-5 border border-slate-200/70">
+      <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Total Investments Made</p>
+      <p class="text-2xl font-semibold text-slate-900 mt-2">{{ totalInvestments }}</p>
+    </div>
+    <div class="rounded-2xl bg-slate-50 p-5 border border-slate-200/70">
+      <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Total Amount Invested</p>
+      <p class="text-2xl font-semibold text-slate-900 mt-2">₹{{ totalAmountInvested | number }}</p>
+    </div>
+    <div class="rounded-2xl bg-slate-50 p-5 border border-slate-200/70">
+      <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Active Investments</p>
+      <p class="text-2xl font-semibold text-slate-900 mt-2">{{ activeInvestments }}</p>
+    </div>
+  </div>
+</section>
+
+<section id="investments" class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold text-slate-900">My Investments</h2>
+      <p class="text-slate-500 mt-1">Track the startups you have backed.</p>
+    </div>
+    <button type="button" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="refreshInvestments.emit()">
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="!investmentsByStartup.length" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+    <p class="font-semibold text-slate-700">You haven't invested in any startups yet.</p>
+    <p class="text-sm mt-2">Explore the latest startups and start investing.</p>
+    <button class="mt-4 px-4 py-2 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800" (click)="discover.emit()">
+      Explore Startups
+    </button>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2" *ngIf="investmentsByStartup.length">
+    <article *ngFor="let investment of paginatedInvestmentsByStartup" class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-semibold text-slate-900">
+            {{ getStartupName(investment.startupId) || ('Startup #' + investment.startupId) }}
+          </h3>
+          <p class="text-sm text-slate-500 mt-2">Amount: ₹{{ investment.totalAmount | number }}</p>
+          <p class="text-xs text-slate-500 mt-1" *ngIf="investment.latestDate">Invested on {{ investment.latestDate | date:'mediumDate' }}</p>
+        </div>
+        <span class="text-xs uppercase tracking-[0.25em] font-semibold"
+              [ngClass]="toUpper(investment.latestStatus) === 'COMPLETED' ? 'text-emerald-600' :
+                        toUpper(investment.latestStatus) === 'APPROVED' ? 'text-indigo-600' :
+                        toUpper(investment.latestStatus) === 'PAYMENT_FAILED' ? 'text-rose-600' :
+                        'text-slate-500'">
+          {{ investment.latestStatus || 'ACTIVE' }}
+        </span>
+      </div>
+      <div class="mt-4 rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        Paid till now: ₹{{ getPaidTotalForStartup(investment.startupId) | number }}
+      </div>
+    </article>
+  </div>
+
+  <div class="flex items-center justify-between mt-2" *ngIf="investmentsByStartup.length">
+    <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition disabled:opacity-50"
+            (click)="prevInvestmentsPage()" [disabled]="investmentsPage === 1">
+      Previous
+    </button>
+    <span class="text-sm text-slate-500">{{ investmentsRangeLabel }}</span>
+    <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition disabled:opacity-50"
+            (click)="nextInvestmentsPage()" [disabled]="investmentsPage >= investmentsTotalPages">
+      Next
+    </button>
+  </div>
+</section>
+
+<section id="payments" class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold text-slate-900">Payments</h2>
+      <p class="text-slate-500 mt-1">Complete approved investments.</p>
+    </div>
+    <button type="button" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="refreshInvestments.emit()">
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="!payableInvestments.length" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+    <p class="font-semibold text-slate-700">No payments pending.</p>
+    <p class="text-sm mt-2">Approved investments will appear here.</p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2" *ngIf="payableInvestments.length">
+    <article *ngFor="let investment of paginatedPayableInvestments" class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-semibold text-slate-900">
+            {{ getStartupName(investment.startupId) || ('Startup #' + investment.startupId) }}
+          </h3>
+          <p class="text-sm text-slate-500 mt-2">Amount: ₹{{ investment.amount | number }}</p>
+        </div>
+        <span class="text-xs uppercase tracking-[0.25em] font-semibold"
+              [ngClass]="toUpper(investment.status) === 'PAYMENT_FAILED' ? 'text-rose-600' : 'text-emerald-600'">
+          {{ investment.status || 'APPROVED' }}
+        </span>
+      </div>
+      <button class="mt-4 w-full px-4 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition invest-cta"
+              (click)="pay.emit(investment)">
+        Pay Now
+      </button>
+    </article>
+  </div>
+
+  <div class="flex items-center justify-between mt-2" *ngIf="payableInvestments.length">
+    <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition disabled:opacity-50"
+            (click)="prevPaymentsPage()" [disabled]="paymentsPage === 1">
+      Previous
+    </button>
+    <span class="text-sm text-slate-500">{{ paymentsRangeLabel }}</span>
+    <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition disabled:opacity-50"
+            (click)="nextPaymentsPage()" [disabled]="paymentsPage >= paymentsTotalPages">
+      Next
+    </button>
+  </div>
+</section>
+
+<section id="startups" class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-semibold text-slate-900">Explore Startups</h2>
+      <p class="text-slate-500 mt-1">Discover ventures that match your investment thesis.</p>
+    </div>
+    <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="refresh.emit()">
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  <div *ngIf="!startups.length && !loading" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-slate-500">
+    <p class="font-semibold text-slate-700">No startups available.</p>
+    <p class="text-sm mt-2">Check back later for new opportunities.</p>
+    <button class="mt-4 px-4 py-2 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800" (click)="discover.emit()">
+      Check Back Later
+    </button>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch transition" *ngIf="paginatedStartups.length">
+    <article *ngFor="let startup of paginatedStartups" class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70 hover:shadow-lg hover:-translate-y-1 transition flex flex-col h-full">
+      <div class="flex-1 min-h-0 flex flex-col gap-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-900">{{ startup.name }}</h3>
+            <p class="text-slate-500 mt-2">{{ startup.description }}</p>
+          </div>
+          <span class="text-xs uppercase tracking-[0.25em] text-emerald-600 font-semibold">Open</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span *ngIf="startup.industry" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ startup.industry }}</span>
+          <span *ngIf="startup.stage" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">{{ startup.stage }}</span>
+        </div>
+      </div>
+      <div class="mt-6 grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Funding Goal</p>
+          <p class="text-lg font-semibold text-slate-900 mt-1">₹{{ startup.fundingGoal | number }}</p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Stage</p>
+          <p class="text-lg font-semibold text-slate-900 mt-1">{{ startup.stage }}</p>
+        </div>
+      </div>
+      <div class="mt-6">
+        <div class="flex items-center justify-between text-xs text-slate-500">
+          <span class="text-emerald-600 font-semibold">Invested ₹{{ getInvestmentTotalForStartup(startup.id) | number }}</span>
+          <span class="text-emerald-600 font-semibold">{{ getFundingProgressLabel(startup) }}</span>
+        </div>
+        <div class="mt-2 h-2 rounded-full bg-slate-100">
+          <div class="h-2 rounded-full bg-emerald-500" [style.width.%]="getFundingProgressWidth(startup)"></div>
+        </div>
+      </div>
+      <div class="mt-6">
+        <button class="w-full px-4 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition invest-cta" (click)="invest.emit(startup)">
+          Invest in Startup
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div class="flex items-center justify-between mt-4" *ngIf="paginatedStartups.length">
+    <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition disabled:opacity-50"
+            (click)="prevPage()" [disabled]="page === 1">
+      Previous
+    </button>
+    <span class="text-sm text-slate-500">{{ startupRangeLabel }}</span>
+    <button class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition disabled:opacity-50"
+            (click)="nextPage()" [disabled]="page >= totalPages">
+      Next
+    </button>
+  </div>
+</section>

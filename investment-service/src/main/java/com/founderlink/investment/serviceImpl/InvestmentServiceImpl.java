@@ -48,8 +48,8 @@ public class InvestmentServiceImpl implements InvestmentService {
     }
 
     @Override
-    public List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId, Long founderId) {
-        return queryService.getInvestmentsByStartupId(startupId, founderId);
+    public List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId, Long requesterId, String requesterRole) {
+        return queryService.getInvestmentsByStartupId(startupId, requesterId, requesterRole);
     }
 
     @Override

@@ -11,7 +11,7 @@ public interface InvestmentService {
     InvestmentResponseDto createInvestment(Long investorId,
                                            InvestmentRequestDto requestDto);
 
-    List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId,Long founderId);
+    List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId, Long requesterId, String requesterRole);
 
 
     List<InvestmentResponseDto> getInvestmentsByInvestorId(Long investorId);

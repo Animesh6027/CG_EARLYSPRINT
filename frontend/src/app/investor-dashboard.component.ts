@@ -6,6 +6,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class InvestorDashboardComponent {
   @Input() userDisplayName = '';
+  industrySearch = '';
   private _startups: Array<any> = [];
   private _investments: Array<any> = [];
   @Input() set startups(value: Array<any>) {
@@ -33,6 +34,7 @@ export class InvestorDashboardComponent {
   @Output() invest = new EventEmitter<any>();
   @Output() pay = new EventEmitter<any>();
   @Output() refreshInvestments = new EventEmitter<void>();
+  @Output() messageFounder = new EventEmitter<{ startupId: number; founderId: number }>();
 
   page = 1;
   pageSize = 6;
@@ -152,6 +154,20 @@ export class InvestorDashboardComponent {
       .reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0);
   }
 
+  getFounderIdForStartup(startupId: number): number | null {
+    const startup = this.startups.find(item => Number(item?.id) === Number(startupId));
+    const founderId = Number(startup?.founderId);
+    return Number.isFinite(founderId) && founderId > 0 ? founderId : null;
+  }
+
+  requestFounderMessage(startupId: number): void {
+    const founderId = this.getFounderIdForStartup(startupId);
+    if (!founderId) {
+      return;
+    }
+    this.messageFounder.emit({ startupId, founderId });
+  }
+
   getFundingProgressPercent(startup: any): number {
     if (!startup) {
       return 0;
@@ -184,7 +200,7 @@ export class InvestorDashboardComponent {
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.sortedStartups.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.filteredStartups.length / this.pageSize));
   }
 
   get sortedStartups(): Array<any> {
@@ -200,10 +216,28 @@ export class InvestorDashboardComponent {
     });
   }
 
+  get filteredStartups(): Array<any> {
+    const term = this.industrySearch.trim().toLowerCase();
+    if (!term) {
+      return this.sortedStartups;
+    }
+    return this.sortedStartups.filter(startup => this.matchesIndustryTerm(startup?.industry, term));
+  }
+
   get paginatedStartups(): Array<any> {
     const clampedPage = Math.min(this.page, this.totalPages);
     const start = (clampedPage - 1) * this.pageSize;
-    return this.sortedStartups.slice(start, start + this.pageSize);
+    return this.filteredStartups.slice(start, start + this.pageSize);
+  }
+
+  onIndustrySearchChange(value: string): void {
+    this.industrySearch = value || '';
+    this.page = 1;
+  }
+
+  clearIndustrySearch(): void {
+    this.industrySearch = '';
+    this.page = 1;
   }
 
   prevPage(): void {
@@ -219,12 +253,12 @@ export class InvestorDashboardComponent {
   }
 
   get startupRangeLabel(): string {
-    if (!this.sortedStartups.length) {
+    if (!this.filteredStartups.length) {
       return 'Showing 0 of 0';
     }
     const start = (this.page - 1) * this.pageSize + 1;
-    const end = Math.min(this.page * this.pageSize, this.sortedStartups.length);
-    return `Showing ${start}-${end} of ${this.sortedStartups.length}`;
+    const end = Math.min(this.page * this.pageSize, this.filteredStartups.length);
+    return `Showing ${start}-${end} of ${this.filteredStartups.length}`;
   }
 
   get paginatedInvestmentsByStartup(): Array<{ startupId: number; totalAmount: number; latestDate?: string; latestStatus?: string; payableInvestment?: any; }> {
@@ -314,5 +348,24 @@ export class InvestorDashboardComponent {
       }
     }
     return 0;
+  }
+
+  private matchesIndustryTerm(industryValue: any, term: string): boolean {
+    const industry = String(industryValue || '').toLowerCase().trim();
+    if (!industry) {
+      return false;
+    }
+
+    // Match by full industry term (or comma-separated term), not substring.
+    const terms = industry
+      .split(/[,/|;&]+/)
+      .map(item => item.trim())
+      .filter(Boolean);
+
+    if (!terms.length) {
+      return false;
+    }
+
+    return terms.some(item => item === term);
   }
 }

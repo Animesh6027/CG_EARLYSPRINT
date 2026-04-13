@@ -5,12 +5,12 @@ spring:
   application:
     name: api-gateway
   config:
-    import: configserver:http://config-server:8888
+    import: configserver:http://localhost:8888
 
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka-server:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
 #   cloud:
@@ -316,8 +316,8 @@ eureka:
 #    instance:
 #      prefer-ip-address: true
 
-# jwt:
-#    secret: +rIslwknSn6yPvrvu4v8FOAGpJcgSOWQNP8lwl2HimM=
+jwt:
+  secret: ${JWT_SECRET:+rIslwknSn6yPvrvu4v8FOAGpJcgSOWQNP8lwl2HimM=}
 
 
 # logging:

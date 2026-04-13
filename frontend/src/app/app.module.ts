@@ -7,9 +7,10 @@ import { AppComponent } from './app.component';
 import { InvestorDashboardComponent } from './investor-dashboard.component';
 import { CofounderDashboardComponent } from './cofounder-dashboard.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { ClickOutsideDirective } from './directives/click-outside.directive';
 
 @NgModule({
-  declarations: [AppComponent, InvestorDashboardComponent, CofounderDashboardComponent],
+  declarations: [AppComponent, InvestorDashboardComponent, CofounderDashboardComponent, ClickOutsideDirective],
   imports: [BrowserModule, HttpClientModule, FormsModule],
   providers: [
     {

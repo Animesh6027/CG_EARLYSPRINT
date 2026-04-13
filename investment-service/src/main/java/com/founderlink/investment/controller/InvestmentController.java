@@ -96,7 +96,7 @@ public class InvestmentController {
         }
 
         List<InvestmentResponseDto> response = investmentService
-                .getInvestmentsByStartupId(startupId, founderId);
+                .getInvestmentsByStartupId(startupId, founderId, userRole);
 
         return ResponseEntity
                 .ok(new ApiResponse<>(

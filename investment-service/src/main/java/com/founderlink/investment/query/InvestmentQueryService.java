@@ -44,18 +44,18 @@ public class InvestmentQueryService {
 
     @Retry(name = "startupService")
     @CircuitBreaker(name = "startupService", fallbackMethod = "getInvestmentsByStartupIdFallback")
-    @Cacheable(value = "investmentsByStartup", key = "#startupId")
-    public List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId, Long founderId) {
-        log.info("QUERY - getInvestmentsByStartupId: startupId={}, founderId={} (cache miss, hitting DB)",
-                startupId, founderId);
-        verifyFounderOwnsStartup(startupId, founderId);
+    @Cacheable(value = "investmentsByStartup", key = "#startupId + ':' + #requesterId + ':' + #requesterRole")
+    public List<InvestmentResponseDto> getInvestmentsByStartupId(Long startupId, Long requesterId, String requesterRole) {
+        log.info("QUERY - getInvestmentsByStartupId: startupId={}, requesterId={}, role={} (cache miss, hitting DB)",
+                startupId, requesterId, requesterRole);
+        verifyAccessToStartup(startupId, requesterId, requesterRole);
         return investmentRepository.findByStartupId(startupId)
                 .stream()
                 .map(investmentMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
 
-    public List<InvestmentResponseDto> getInvestmentsByStartupIdFallback(Long startupId, Long founderId,
+    public List<InvestmentResponseDto> getInvestmentsByStartupIdFallback(Long startupId, Long requesterId, String requesterRole,
                                                                            Throwable throwable) {
         if (throwable instanceof StartupNotFoundException
                 || throwable instanceof ForbiddenAccessException) {
@@ -80,12 +80,15 @@ public class InvestmentQueryService {
 
     // ── Private helper ───────────────────────────────────────────────────────
 
-    private void verifyFounderOwnsStartup(Long startupId, Long founderId) {
+    private void verifyAccessToStartup(Long startupId, Long requesterId, String requesterRole) {
         StartupResponseDto startup = startupServiceClient.getStartupById(startupId);
         if (startup == null) {
             throw new StartupNotFoundException("Startup not found with id: " + startupId);
         }
-        if (!startup.getFounderId().equals(founderId)) {
+        if ("ROLE_ADMIN".equalsIgnoreCase(requesterRole)) {
+            return;
+        }
+        if (!startup.getFounderId().equals(requesterId)) {
             throw new ForbiddenAccessException("You are not authorized to perform this action on this startup");
         }
     }

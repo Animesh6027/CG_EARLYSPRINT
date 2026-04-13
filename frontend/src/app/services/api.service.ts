@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, timeout } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -37,7 +37,8 @@ export class ApiService {
 
   private getHeaders(): HttpHeaders {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    if (this.authToken) {
+    // Only send Authorization header for real JWT tokens, not for temp admin session
+    if (this.authToken && !this.isTempAdminToken()) {
       headers = headers.set('Authorization', `Bearer ${this.authToken}`);
     }
     if (this.authUserId !== null && this.authUserId !== undefined) {
@@ -48,6 +49,10 @@ export class ApiService {
       headers = headers.set('X-User-Role', normalizedRole);
     }
     return headers;
+  }
+
+  private isTempAdminToken(): boolean {
+    return this.authToken === 'temp-admin-session';
   }
 
   register(name: string, email: string, password: string, role: string): Observable<any> {
@@ -140,6 +145,10 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/users/${id}`, { headers: this.getHeaders() });
   }
 
+  getPublicUserById(id: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/users/${id}`);
+  }
+
   updateUser(id: number, payload: { skills?: string; experience?: string; bio?: string; portfolioLinks?: string; }): Observable<any> {
     return this.http.put(`${this.baseUrl}/users/${id}`, payload, { headers: this.getHeaders() });
   }
@@ -161,6 +170,8 @@ export class ApiService {
   }
 
   logout(): Observable<any> {
-    return this.http.post(`${this.baseUrl}/auth/logout`, {}, { headers: this.getHeaders(), withCredentials: true });
+    return this.http
+      .post(`${this.baseUrl}/auth/logout`, {}, { headers: this.getHeaders(), withCredentials: true })
+      .pipe(timeout(8000));
   }
 }

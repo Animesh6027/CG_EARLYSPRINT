@@ -15,6 +15,7 @@ import { environment } from '../../environments/environment';
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private readonly refreshUrl = `${environment.apiBaseUrl || ''}/auth/refresh`;
+  private readonly tempAdminSessionToken = 'temp-admin-session';
   private isRefreshing = false;
   private refreshTokenSubject = new BehaviorSubject<string | null>(null);
   private httpNoInterceptor: HttpClient;
@@ -26,9 +27,10 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const isAuthRefreshRequest = req.url.includes('/auth/refresh');
     const token = localStorage.getItem('authToken');
+    const isTempAdminSession = token === this.tempAdminSessionToken;
 
     let authReq = req.clone({ withCredentials: true });
-    if (token && !isAuthRefreshRequest) {
+    if (token && !isAuthRefreshRequest && !isTempAdminSession) {
       authReq = authReq.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
@@ -38,7 +40,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status !== 401 || isAuthRefreshRequest || !token) {
+        if (error.status !== 401 || isAuthRefreshRequest || !token || isTempAdminSession) {
           return throwError(() => error);
         }
 
@@ -87,7 +89,10 @@ export class AuthInterceptor implements HttpInterceptor {
         return next.handle(retryReq);
       }),
       catchError(refreshError => {
-        this.clearAuthStorage();
+        const currentToken = localStorage.getItem('authToken');
+        if (currentToken !== this.tempAdminSessionToken) {
+          this.clearAuthStorage();
+        }
         return throwError(() => refreshError);
       }),
       finalize(() => {

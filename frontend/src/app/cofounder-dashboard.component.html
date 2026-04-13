@@ -139,36 +139,4 @@
     </div>
   </div>
 
-  <div class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70">
-    <div class="flex items-center justify-between">
-      <div>
-        <h3 class="text-xl font-semibold text-slate-900">My Interest Requests</h3>
-        <p class="text-slate-500 mt-1">Track founder decisions for your requests.</p>
-      </div>
-      <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="refreshInterests.emit()">
-        {{ myInterestsLoading ? 'Loading...' : 'Refresh' }}
-      </button>
-    </div>
-    <div *ngIf="myInterestsError" class="mt-4 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-rose-700 text-sm">
-      {{ myInterestsError }}
-    </div>
-    <div *ngIf="myInterestsLoading" class="text-sm text-slate-500 mt-4">Loading requests...</div>
-    <div *ngIf="!myInterests.length && !myInterestsLoading" class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-slate-600 mt-4">
-      <p class="font-semibold text-slate-700">No interest requests yet.</p>
-      <p class="text-sm mt-2">Mark startups as interested from Startup Matches.</p>
-    </div>
-    <div class="mt-4 space-y-2" *ngIf="myInterests.length">
-      <div *ngFor="let interest of myInterests" class="rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm">
-        <div class="flex items-center justify-between gap-3">
-          <div>
-            <p class="font-semibold text-slate-900">{{ getStartupName(interest.startupId) }}</p>
-            <p class="text-xs text-slate-500 mt-1">Role: {{ interest.desiredRole }}</p>
-          </div>
-          <span class="text-xs font-semibold uppercase" [ngClass]="interestStatuses[(interest.status || '').toUpperCase()] || 'text-slate-500'">
-            {{ interest.status }}
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>

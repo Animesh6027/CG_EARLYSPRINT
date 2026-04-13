@@ -32,7 +32,9 @@
         <div class="login-header">
           <p class="eyebrow">Welcome back</p>
           <h2>Sign in to FounderLink</h2>
-          <p class="login-subtitle">Enter your credentials to access the platform.</p>
+          <p class="login-subtitle">
+            {{ adminLoginMode ? 'Admin access only. Enter your admin credentials.' : 'Enter your credentials to access the platform.' }}
+          </p>
         </div>
 
         <div class="tab-row" role="tablist" aria-label="Authentication tabs">
@@ -65,7 +67,10 @@
             <button type="button" class="password-toggle-inline" (click)="togglePassword('login')">{{ showLoginPassword ? 'Hide' : 'Show' }}</button>
           </div>
 
-          <button class="btn-primary" (click)="login()" [disabled]="loading">{{ loading ? 'Signing in...' : 'Sign In' }}</button>
+          <button class="btn-primary" (click)="login()" [disabled]="loading">
+            {{ loading ? 'Signing in...' : (adminLoginMode ? 'Sign in as Admin' : 'Sign In') }}
+          </button>
+          <button class="btn-secondary" type="button" (click)="showAdminLogin()">Admin Login</button>
           <button class="btn-link" type="button" (click)="toggleForgot()">Forgot Password?</button>
         </section>
 
@@ -147,14 +152,14 @@
       <div class="w-full px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p class="text-xs uppercase tracking-[0.35em] text-indigo-600 font-semibold">FounderLink</p>
-          <h2 class="text-2xl font-semibold text-slate-900">Founder Dashboard</h2>
+          <h2 class="text-2xl font-semibold text-slate-900">{{ isAdmin ? 'Admin Dashboard' : 'Founder Dashboard' }}</h2>
         </div>
         <div class="flex items-center gap-4">
-          <div class="relative">
+          <div class="relative" appClickOutside (appClickOutside)="closeNotificationsPanel()">
             <button
               type="button"
               class="w-10 h-10 rounded-full border border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 transition cursor-pointer flex items-center justify-center relative"
-              (click)="toggleNotificationsPanel()"
+              (click)="toggleNotificationsPanel($event)"
               aria-label="Notifications">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -192,7 +197,7 @@
                   <div class="flex items-start justify-between gap-3">
                     <div>
                       <p class="text-xs uppercase tracking-[0.15em] text-slate-500">{{ notification.type }}</p>
-                      <p class="text-sm text-slate-800 mt-1">{{ notification.message }}</p>
+                      <p class="text-sm text-slate-800 mt-1">{{ formatNotificationMessage(notification.message) }}</p>
                       <p class="text-[11px] text-slate-500 mt-1" *ngIf="notification.createdAt">{{ notification.createdAt | date:'medium' }}</p>
                     </div>
                     <button
@@ -219,19 +224,23 @@
             <p class="text-sm font-semibold text-slate-900">{{ userDisplayName }}</p>
             <p class="text-xs uppercase tracking-[0.2em] text-slate-500">{{ roleLabel }}</p>
           </div>
-          <details class="relative">
-            <summary class="list-none w-10 h-10 rounded-full border border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 transition cursor-pointer flex items-center justify-center">
+          <div class="relative" appClickOutside (appClickOutside)="closeProfileMenu()">
+            <button
+              type="button"
+              class="w-10 h-10 rounded-full border border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-900 transition cursor-pointer flex items-center justify-center"
+              (click)="toggleProfileMenu($event)"
+              aria-label="Account menu">
               <span class="text-lg leading-none">▾</span>
-            </summary>
-            <div class="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-200 bg-white shadow-lg p-2 z-20">
-              <button class="w-full text-left px-3 py-2 rounded-xl text-sm text-slate-700 hover:bg-slate-100" (click)="openProfile()">
+            </button>
+            <div *ngIf="showProfileMenu" class="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-200 bg-white shadow-lg p-2 z-20">
+              <button type="button" class="w-full text-left px-3 py-2 rounded-xl text-sm text-slate-700 hover:bg-slate-100" (click)="openProfileFromMenu($event)">
                 Profile
               </button>
-              <button class="w-full text-left px-3 py-2 rounded-xl text-sm text-rose-600 hover:bg-rose-50" (click)="logout()">
+              <button type="button" class="w-full text-left px-3 py-2 rounded-xl text-sm text-rose-600 hover:bg-rose-50" (click)="logout()">
                 Logout
               </button>
             </div>
-          </details>
+          </div>
         </div>
       </div>
     </nav>
@@ -242,7 +251,9 @@
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-2xl font-semibold text-slate-900">Messages</h2>
-              <p class="text-slate-500 mt-1">Pick a teammate to view all conversations.</p>
+              <p class="text-slate-500 mt-1">
+                {{ isInvestor ? 'Pick a founder from your invested startups to start chatting.' : 'Pick a teammate to view all conversations.' }}
+              </p>
             </div>
             <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="loadMessagePartners()">
               {{ messagePartnersLoading ? 'Loading...' : 'Refresh' }}
@@ -254,10 +265,13 @@
               <input type="text" [(ngModel)]="messageSearch" name="messageSearch" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Search conversations..." />
               <div class="mt-4 space-y-2">
                 <div *ngIf="messagePartnersLoading" class="text-sm text-slate-500">Loading conversations...</div>
-                <div *ngIf="!messagePartnersLoading && !messagePartners.length" class="text-sm text-slate-500">No messages yet.</div>
-                <button *ngFor="let partnerId of getFilteredMessagePartners()" class="w-full text-left rounded-2xl border px-4 py-3 text-sm transition"
+                <div *ngIf="!messagePartnersLoading && !getFilteredMessagePartners().length" class="text-sm text-slate-500">No messages yet.</div>
+                <button *ngFor="let partnerId of getFilteredMessagePartners()" class="w-full text-left rounded-2xl border px-4 py-3 text-sm transition relative"
                         [ngClass]="partnerId === messagePartnerId ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'"
                         (click)="setActiveConversation(partnerId)">
+                  <span *ngIf="getUnreadCount(partnerId) > 0" class="absolute -top-2 right-3 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[11px] font-semibold flex items-center justify-center">
+                    {{ getUnreadCount(partnerId) > 99 ? '99+' : getUnreadCount(partnerId) }}
+                  </span>
                   <p class="font-semibold">{{ getUserName(partnerId) }}</p>
                   <p class="text-xs text-slate-500">Tap to view messages</p>
                 </button>
@@ -285,7 +299,7 @@
               </div>
 
               <div class="mt-4 flex gap-3">
-                <input type="text" [(ngModel)]="messageText" name="messageText" class="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Write a message..." />
+                <input type="text" [(ngModel)]="messageText" name="messageText" (keydown.enter)="sendMessageOnEnter($event)" class="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Write a message..." />
                 <button class="px-5 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-60" (click)="sendMessage()" [disabled]="messageSending || !messagePartnerId">
                   {{ messageSending ? 'Sending...' : 'Send' }}
                 </button>
@@ -294,6 +308,637 @@
           </div>
         </section>
       </ng-template>
+
+      <section *ngIf="isAdmin" class="grid gap-6 lg:grid-cols-[250px,1fr]">
+        <aside class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200/70 p-4 h-fit sticky top-24">
+          <p class="text-xs uppercase tracking-[0.25em] text-slate-500 px-3 pt-2">Admin Navigation</p>
+          <nav class="mt-3 space-y-1">
+            <button *ngFor="let section of adminSections"
+                    type="button"
+                    class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition"
+                    [ngClass]="adminActiveSection === section ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'"
+                    (click)="setAdminSection(section)">
+              {{ section | titlecase }}
+            </button>
+          </nav>
+        </aside>
+
+        <div class="space-y-6">
+          <div class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200/70 p-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">FounderLink Admin</p>
+                <h1 class="text-3xl font-semibold text-slate-900">Control Center</h1>
+                <p class="text-slate-500 mt-1">Monitor users, startups, investments, reports, and platform operations.</p>
+              </div>
+              <button class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition"
+                      (click)="loadAdminData()">
+                Refresh Data
+              </button>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-6">
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Users</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">{{ adminTotalUsers }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Startups</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">{{ adminTotalStartups }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Investments</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">Rs {{ adminTotalInvestmentsAmount | number }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Revenue</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">Rs {{ adminRevenue | number }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'dashboard'" class="space-y-6">
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              <div class="rounded-2xl bg-white p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Founders</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">{{ adminFounderCount }}</p>
+              </div>
+              <div class="rounded-2xl bg-white p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Co-Founders</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">{{ adminCofounderCount }}</p>
+              </div>
+              <div class="rounded-2xl bg-white p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Investors</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">{{ adminInvestorCount }}</p>
+              </div>
+              <div class="rounded-2xl bg-white p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Startups</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">{{ adminTotalStartups }}</p>
+              </div>
+              <div class="rounded-2xl bg-white p-4 border border-slate-200/70">
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Investments</p>
+                <p class="text-2xl font-semibold text-slate-900 mt-1">Rs {{ adminTotalInvestmentsAmount | number }}</p>
+              </div>
+            </div>
+
+            <div class="grid gap-4 lg:grid-cols-2">
+              <div class="rounded-2xl bg-white p-5 border border-slate-200/70">
+                <h3 class="text-lg font-semibold text-slate-900">Startup Growth</h3>
+                <p class="text-sm text-slate-500 mt-1">Actual registrations in the last 7 days</p>
+                <div class="mt-5">
+                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-36">
+                    <polyline [attr.points]="getLineChartPoints(adminStartupGrowthSeries)" fill="none" stroke="#4f46e5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                  </svg>
+                  <div class="mt-2 grid grid-cols-7 gap-2 text-center">
+                    <span *ngFor="let point of adminStartupGrowthSeries" class="text-[11px] text-slate-500">{{ point.label }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-2xl bg-white p-5 border border-slate-200/70">
+                <h3 class="text-lg font-semibold text-slate-900">Investments Over Time</h3>
+                <p class="text-sm text-slate-500 mt-1">Actual monthly investment totals</p>
+                <div class="mt-5 h-44 flex items-end gap-3">
+                  <div *ngFor="let point of adminInvestmentSeries" class="flex-1 flex flex-col items-center gap-2">
+                    <div class="w-full rounded-t-xl bg-emerald-500/85" [style.height.px]="getSeriesPointHeight(point.value, adminInvestmentSeries, 18, 140)"></div>
+                    <span class="text-[11px] text-slate-500">{{ point.label }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 border border-slate-200/70">
+              <h3 class="text-lg font-semibold text-slate-900">Recent Activity</h3>
+              <div class="mt-4 space-y-2">
+                <div *ngFor="let item of adminActivityFeed" class="rounded-xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm">
+                  <p class="font-medium text-slate-800">{{ item.text }}</p>
+                  <p class="text-xs text-slate-500 mt-1">{{ item.time }}</p>
+                </div>
+                <p *ngIf="!adminActivityFeed.length" class="text-sm text-slate-500">No recent activity.</p>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'founders'" class="rounded-2xl bg-white p-5 border border-slate-200/70 space-y-4">
+            <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Founders</h3>
+              <div class="flex flex-wrap gap-2">
+                <input type="text" [(ngModel)]="adminFounderSearch" (ngModelChange)="onAdminFounderFiltersChanged()" placeholder="Search founders..." class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                <select [(ngModel)]="adminFounderFilter" (ngModelChange)="onAdminFounderFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="ALL">All</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="BLOCKED">Blocked</option>
+                  <option value="NEW">New</option>
+                </select>
+                <select [(ngModel)]="adminFounderSort" (ngModelChange)="onAdminFounderFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="NAME_ASC">Name A-Z</option>
+                  <option value="NAME_DESC">Name Z-A</option>
+                  <option value="RECENT_JOINED">Recently Joined</option>
+                  <option value="STARTUPS_DESC">Most Startups</option>
+                </select>
+              </div>
+            </div>
+            <div *ngIf="adminRoleLoading.founders" class="space-y-2">
+              <div *ngFor="let _ of adminSkeletonRows" class="h-10 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500 border-b border-slate-200">
+                    <th class="py-2 pr-4">Name</th>
+                    <th class="py-2 pr-4">Email</th>
+                    <th class="py-2 pr-4">Startup</th>
+                    <th class="py-2 pr-4">Status</th>
+                    <th class="py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody *ngIf="!adminRoleLoading.founders && pagedAdminFounders.length">
+                  <tr *ngFor="let item of pagedAdminFounders" class="border-b border-slate-100">
+                    <td class="py-3 pr-4 font-semibold text-slate-900">
+                      <div class="flex items-center gap-3">
+                        <span class="h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">{{ getInitials(item.name) }}</span>
+                        <span>{{ adminDisplayValue(item.name) }}</span>
+                      </div>
+                    </td>
+                    <td class="py-3 pr-4 text-slate-600">{{ adminDisplayValue(item.email) }}</td>
+                    <td class="py-3 pr-4 text-slate-700">{{ adminDisplayValue(item.startupName) }}</td>
+                    <td class="py-3 pr-4">
+                      <span class="px-2.5 py-1 rounded-full text-xs font-semibold" [ngClass]="item.status === 'BLOCKED' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'">{{ item.status }}</span>
+                    </td>
+                    <td class="py-3 space-x-2">
+                      <button class="text-indigo-600 font-semibold" (click)="openAdminDetails('Founder Profile', item)">View Profile</button>
+                      <button class="text-rose-600 font-semibold" (click)="toggleFounderBlock(item.id)">{{ item.status === 'BLOCKED' ? 'Unblock' : 'Block' }}</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p *ngIf="!adminRoleLoading.founders && !pagedAdminFounders.length" class="text-sm text-slate-500">No Data Available</p>
+            <div class="flex items-center justify-between text-sm text-slate-500">
+              <span>Page {{ adminFounderCurrentPage }} / {{ adminFounderTotalPages }}</span>
+              <div class="space-x-2">
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="prevAdminFounderPage()" [disabled]="adminFounderCurrentPage === 1">Previous</button>
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="nextAdminFounderPage()" [disabled]="adminFounderCurrentPage === adminFounderTotalPages">Next</button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'cofounders'" class="rounded-2xl bg-white p-5 border border-slate-200/70 space-y-4">
+            <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Co-Founders</h3>
+              <div class="flex flex-wrap gap-2">
+                <input type="text" [(ngModel)]="adminCofounderSearch" (ngModelChange)="onAdminCofounderFiltersChanged()" placeholder="Search co-founders..." class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                <select [(ngModel)]="adminCofounderStartupFilter" (ngModelChange)="onAdminCofounderFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="ALL">All Startups</option>
+                  <option *ngFor="let startupName of adminCofounderStartupOptions" [value]="startupName">{{ startupName }}</option>
+                </select>
+                <select [(ngModel)]="adminCofounderStatusFilter" (ngModelChange)="onAdminCofounderFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="ALL">All Status</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                </select>
+                <select [(ngModel)]="adminCofounderSort" (ngModelChange)="onAdminCofounderFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="NAME_ASC">Name A-Z</option>
+                  <option value="NAME_DESC">Name Z-A</option>
+                </select>
+              </div>
+            </div>
+            <div *ngIf="adminRoleLoading.cofounders" class="space-y-2">
+              <div *ngFor="let _ of adminSkeletonRows" class="h-10 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500 border-b border-slate-200">
+                    <th class="py-2 pr-4">Name</th>
+                    <th class="py-2 pr-4">Email</th>
+                    <th class="py-2 pr-4">Associated Startup</th>
+                    <th class="py-2 pr-4">Role / Contribution</th>
+                    <th class="py-2 pr-4">Status</th>
+                    <th class="py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody *ngIf="!adminRoleLoading.cofounders && pagedAdminCofounders.length">
+                  <tr *ngFor="let item of pagedAdminCofounders" class="border-b border-slate-100">
+                    <td class="py-3 pr-4 font-semibold text-slate-900">{{ adminDisplayValue(item.name) }}</td>
+                    <td class="py-3 pr-4 text-slate-700">{{ adminDisplayValue(item.email) }}</td>
+                    <td class="py-3 pr-4 text-slate-700">{{ adminDisplayValue(item.startupName) }}</td>
+                    <td class="py-3 pr-4 text-slate-700">{{ adminDisplayValue(item.contribution) }}</td>
+                    <td class="py-3 pr-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold" [ngClass]="item.status === 'INACTIVE' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">{{ item.status }}</span></td>
+                    <td class="py-3 space-x-2">
+                      <button class="text-indigo-600 font-semibold" (click)="openAdminDetails('Cofounder Profile', item)">View Profile</button>
+                      <button class="text-emerald-600 font-semibold" (click)="setCofounderApproval(item.id, 'APPROVED')">Approve</button>
+                      <button class="text-rose-600 font-semibold" (click)="setCofounderApproval(item.id, 'REJECTED')">Reject</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p *ngIf="!adminRoleLoading.cofounders && !pagedAdminCofounders.length" class="text-sm text-slate-500">No Data Available</p>
+            <div class="flex items-center justify-between text-sm text-slate-500">
+              <span>Page {{ adminCofounderCurrentPage }} / {{ adminCofounderTotalPages }}</span>
+              <div class="space-x-2">
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="prevAdminCofounderPage()" [disabled]="adminCofounderCurrentPage === 1">Previous</button>
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="nextAdminCofounderPage()" [disabled]="adminCofounderCurrentPage === adminCofounderTotalPages">Next</button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'investors'" class="rounded-2xl bg-white p-5 border border-slate-200/70 space-y-4">
+            <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Investors</h3>
+              <div class="flex flex-wrap gap-2">
+                <input type="text" [(ngModel)]="adminInvestorSearch" (ngModelChange)="onAdminInvestorFiltersChanged()" placeholder="Search investors..." class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                <select [(ngModel)]="adminInvestorFilter" (ngModelChange)="onAdminInvestorFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="ALL">All</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="BLOCKED">Blocked</option>
+                </select>
+                <select [(ngModel)]="adminInvestorSort" (ngModelChange)="onAdminInvestorFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="INVESTED_DESC">Highest Invested</option>
+                  <option value="INVESTED_ASC">Lowest Invested</option>
+                  <option value="NAME_ASC">Name A-Z</option>
+                </select>
+              </div>
+            </div>
+            <div *ngIf="adminRoleLoading.investors" class="space-y-2">
+              <div *ngFor="let _ of adminSkeletonRows" class="h-10 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500 border-b border-slate-200">
+                    <th class="py-2 pr-4">Name</th>
+                    <th class="py-2 pr-4">Email</th>
+                    <th class="py-2 pr-4">Total Invested</th>
+                    <th class="py-2 pr-4">No. of Investments</th>
+                    <th class="py-2 pr-4">Recent Activity</th>
+                    <th class="py-2 pr-4">Status</th>
+                    <th class="py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody *ngIf="!adminRoleLoading.investors && pagedAdminInvestors.length">
+                  <tr *ngFor="let item of pagedAdminInvestors" class="border-b border-slate-100">
+                    <td class="py-3 pr-4 font-semibold text-slate-900">{{ adminDisplayValue(item.name) }}</td>
+                    <td class="py-3 pr-4 text-slate-700">{{ adminDisplayValue(item.email) }}</td>
+                    <td class="py-3 pr-4">Rs {{ item.totalInvested | number }}</td>
+                    <td class="py-3 pr-4">{{ item.investmentCount }}</td>
+                    <td class="py-3 pr-4 text-slate-700">{{ adminDisplayValue(item.recentActivity) }}</td>
+                    <td class="py-3 pr-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold" [ngClass]="item.status === 'BLOCKED' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'">{{ item.status }}</span></td>
+                    <td class="py-3 space-x-2">
+                      <button class="text-indigo-600 font-semibold" (click)="openAdminDetails('Investor Profile', item)">View Profile</button>
+                      <button class="text-emerald-600 font-semibold" (click)="openAdminDetails('Investor Portfolio', item)">View Portfolio</button>
+                      <button class="text-rose-600 font-semibold" (click)="toggleInvestorBlock(item.id)">{{ item.status === 'BLOCKED' ? 'Unblock' : 'Block' }}</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p *ngIf="!adminRoleLoading.investors && !pagedAdminInvestors.length" class="text-sm text-slate-500">No Data Available</p>
+            <div class="flex items-center justify-between text-sm text-slate-500">
+              <span>Page {{ adminInvestorCurrentPage }} / {{ adminInvestorTotalPages }}</span>
+              <div class="space-x-2">
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="prevAdminInvestorPage()" [disabled]="adminInvestorCurrentPage === 1">Previous</button>
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="nextAdminInvestorPage()" [disabled]="adminInvestorCurrentPage === adminInvestorTotalPages">Next</button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'startups'" class="rounded-2xl bg-white p-5 border border-slate-200/70 space-y-4">
+            <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Startups</h3>
+              <div class="flex flex-wrap gap-2">
+                <input type="text" [(ngModel)]="adminStartupSearch" (ngModelChange)="onAdminStartupFiltersChanged()" placeholder="Search startups..." class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                <select [(ngModel)]="adminStartupFilter" (ngModelChange)="onAdminStartupFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="ALL">All</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+                <select [(ngModel)]="adminStartupSort" (ngModelChange)="onAdminStartupFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="NEWEST">Newest</option>
+                  <option value="FUNDING_DESC">Highest Funding</option>
+                  <option value="NAME_ASC">Name A-Z</option>
+                </select>
+              </div>
+            </div>
+            <div *ngIf="adminRoleLoading.startups" class="space-y-3">
+              <div *ngFor="let _ of adminSkeletonRows" class="h-24 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <article *ngFor="let startup of pagedAdminStartups" class="rounded-2xl border border-slate-200/70 bg-slate-50 p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 class="font-semibold text-slate-900">{{ adminDisplayValue(startup.name) }}</h4>
+                    <p class="text-xs text-slate-500 mt-1">Founder: {{ adminDisplayValue(startup.founderDisplayName) }}</p>
+                    <p class="text-xs text-slate-500">Domain: {{ adminDisplayValue(startup.industry) }}</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                        [ngClass]="getAdminStartupStatus(startup) === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : getAdminStartupStatus(startup) === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'">
+                    {{ getAdminStartupStatus(startup) }}
+                  </span>
+                </div>
+                <p class="text-sm text-slate-700 mt-3">Funding Goal: Rs {{ startup.fundingGoal | number }}</p>
+                <p class="text-sm text-slate-700">Amount Raised: <span class="font-semibold text-emerald-700">Rs {{ startup.amountRaised | number }}</span></p>
+                <div class="mt-2">
+                  <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
+                    <div class="h-full bg-emerald-500" [style.width.%]="startup.fundingProgress"></div>
+                  </div>
+                  <p class="text-[11px] text-slate-500 mt-1">{{ startup.fundingProgress }}% funded</p>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <button class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold" (click)="openAdminDetails('Startup Details', startup)">View Details</button>
+                  <button class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold" (click)="updateStartupStatus(startup.id, 'APPROVED')">Approve</button>
+                  <button class="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold" (click)="updateStartupStatus(startup.id, 'REJECTED')">Reject</button>
+                </div>
+              </article>
+            </div>
+            <p *ngIf="!adminRoleLoading.startups && !pagedAdminStartups.length" class="text-sm text-slate-500">No Data Available</p>
+            <div class="flex items-center justify-between text-sm text-slate-500">
+              <span>Page {{ adminStartupCurrentPage }} / {{ adminStartupTotalPages }}</span>
+              <div class="space-x-2">
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="prevAdminStartupPage()" [disabled]="adminStartupCurrentPage === 1">Previous</button>
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="nextAdminStartupPage()" [disabled]="adminStartupCurrentPage === adminStartupTotalPages">Next</button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'investments'" class="rounded-2xl bg-white p-5 border border-slate-200/70 space-y-4">
+            <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Investments</h3>
+              <div class="flex flex-wrap gap-2">
+                <input type="text" [(ngModel)]="adminInvestmentSearch" (ngModelChange)="onAdminInvestmentFiltersChanged()" placeholder="Search investments..." class="rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                <select [(ngModel)]="adminInvestmentFilter" (ngModelChange)="onAdminInvestmentFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="ALL">All</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+                <select [(ngModel)]="adminInvestmentSort" (ngModelChange)="onAdminInvestmentFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="RECENT">Recent</option>
+                  <option value="AMOUNT_DESC">Highest</option>
+                  <option value="AMOUNT_ASC">Lowest</option>
+                </select>
+              </div>
+            </div>
+            <div *ngIf="adminRoleLoading.investments" class="space-y-2">
+              <div *ngFor="let _ of adminSkeletonRows" class="h-10 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+            <div class="overflow-x-auto" *ngIf="!adminInvestmentsLoading">
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500 border-b border-slate-200">
+                    <th class="py-2 pr-4">Investor</th>
+                    <th class="py-2 pr-4">Startup</th>
+                    <th class="py-2 pr-4">Amount</th>
+                    <th class="py-2 pr-4">Status</th>
+                    <th class="py-2">Created</th>
+                  </tr>
+                </thead>
+                <tbody *ngIf="pagedAdminInvestments.length">
+                  <tr *ngFor="let inv of pagedAdminInvestments" class="border-b border-slate-100">
+                    <td class="py-3 pr-4">{{ adminDisplayValue(getUserName(inv.investorId)) }}</td>
+                    <td class="py-3 pr-4">{{ adminDisplayValue(getStartupNameById(inv.startupId)) }}</td>
+                    <td class="py-3 pr-4 font-semibold">Rs {{ inv.amount | number }}</td>
+                    <td class="py-3 pr-4"><span class="px-2.5 py-1 rounded-full text-[11px] font-semibold" [ngClass]="upper(inv.status) === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : upper(inv.status) === 'FAILED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'">{{ inv.status }}</span></td>
+                    <td class="py-3">{{ inv.createdAt ? (inv.createdAt | date:'short') : adminDisplayValue('') }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p *ngIf="!adminRoleLoading.investments && !pagedAdminInvestments.length" class="text-sm text-slate-500">No Data Available</p>
+            <div class="flex items-center justify-between text-sm text-slate-500">
+              <span>Page {{ adminInvestmentCurrentPage }} / {{ adminInvestmentTotalPages }}</span>
+              <div class="space-x-2">
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="prevAdminInvestmentPage()" [disabled]="adminInvestmentCurrentPage === 1">Previous</button>
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="nextAdminInvestmentPage()" [disabled]="adminInvestmentCurrentPage === adminInvestmentTotalPages">Next</button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'reports'" class="rounded-2xl bg-white p-5 border border-slate-200/70 space-y-4">
+            <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
+              <h3 class="text-lg font-semibold text-slate-900">Reports</h3>
+              <div class="flex flex-wrap gap-2">
+                <input type="text" [(ngModel)]="adminReportSearch" (ngModelChange)="onAdminReportFiltersChanged()" placeholder="Search flagged items..." class="rounded-xl border border-slate-200 px-3 py-2 text-sm w-full lg:w-72" />
+                <select [(ngModel)]="adminReportFilter" (ngModelChange)="onAdminReportFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="ALL">All Types</option>
+                  <option value="FOUNDER">Founder</option>
+                  <option value="INVESTOR">Investor</option>
+                  <option value="STARTUP">Startup</option>
+                  <option value="INVESTMENT">Investment</option>
+                </select>
+                <select [(ngModel)]="adminReportSort" (ngModelChange)="onAdminReportFiltersChanged()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                  <option value="TYPE_ASC">Type A-Z</option>
+                  <option value="TYPE_DESC">Type Z-A</option>
+                  <option value="TITLE_ASC">Title A-Z</option>
+                </select>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div *ngIf="adminRoleLoading.reports" class="space-y-2">
+                <div *ngFor="let _ of adminSkeletonRows" class="h-10 rounded-xl bg-slate-100 animate-pulse"></div>
+              </div>
+              <div *ngFor="let report of pagedAdminReports" class="rounded-xl border border-slate-200/70 bg-slate-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p class="font-semibold text-slate-900">{{ report.type }}: {{ report.title }}</p>
+                  <p class="text-sm text-slate-500">{{ report.reason }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold" (click)="openAdminDetails('Report Details', report)">Review</button>
+                  <button class="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold" (click)="pushToast('info', 'Action taken on report.')">Take Action</button>
+                </div>
+              </div>
+              <p *ngIf="!adminRoleLoading.reports && !filteredAdminReports.length" class="text-sm text-slate-500">No Data Available</p>
+            </div>
+            <div class="flex items-center justify-between text-sm text-slate-500">
+              <span>Page {{ adminReportCurrentPage }} / {{ adminReportTotalPages }}</span>
+              <div class="space-x-2">
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="prevAdminReportPage()" [disabled]="adminReportCurrentPage === 1">Previous</button>
+                <button class="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-50" (click)="nextAdminReportPage()" [disabled]="adminReportCurrentPage === adminReportTotalPages">Next</button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="adminActiveSection === 'settings'" class="rounded-2xl bg-white p-5 border border-slate-200/70 space-y-4 max-w-2xl">
+            <h3 class="text-lg font-semibold text-slate-900">Settings</h3>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Admin Name</label>
+                <input type="text" [(ngModel)]="adminSettingsName" class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700">Admin Email</label>
+                <input type="email" [(ngModel)]="adminSettingsEmail" class="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+              </div>
+            </div>
+            <button class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold" (click)="saveAdminSettings()">Save Settings</button>
+          </div>
+
+          <div *ngIf="showAdminDetailsModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4" (click)="closeAdminDetails()">
+            <div class="bg-white w-full max-w-2xl rounded-2xl p-5 shadow-2xl" (click)="$event.stopPropagation()">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="text-lg font-semibold text-slate-900">{{ adminDetailsTitle }}</h3>
+                <button class="text-sm font-semibold text-slate-600" (click)="closeAdminDetails()">Close</button>
+              </div>
+              <ng-container *ngIf="adminDetailsIsProfile; else nonProfileAdminDetails">
+                <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+                  <div class="bg-gradient-to-r from-cyan-50 via-white to-emerald-50 px-5 py-4 border-b border-slate-200/80">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div class="flex items-center gap-3">
+                        <span class="h-12 w-12 rounded-2xl bg-cyan-100 text-cyan-700 font-bold text-sm flex items-center justify-center">{{ getInitials(adminProfileDetailsView.name) }}</span>
+                        <div>
+                          <p class="text-base font-semibold text-slate-900">{{ adminProfileDetailsView.name }}</p>
+                          <p class="text-sm text-slate-600">{{ adminProfileDetailsView.email }}</p>
+                        </div>
+                      </div>
+                      <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="getAdminStatusBadgeClass(adminProfileDetailsView.status)">{{ adminProfileDetailsView.status }}</span>
+                    </div>
+                  </div>
+
+                  <div class="p-5 grid gap-3 sm:grid-cols-2">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Role</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminProfileDetailsView.role }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Member Since</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">{{ formatAdminDateTime(adminProfileDetailsView.joinedOn) }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3" *ngIf="adminDetailsTitle === 'Founder Profile' || adminDetailsTitle === 'Cofounder Profile'">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Associated Startup</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminProfileDetailsView.startupName }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3" *ngIf="adminDetailsTitle === 'Founder Profile'">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Startup Count</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminProfileDetailsView.startupCount }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3" *ngIf="adminDetailsTitle === 'Cofounder Profile'">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Contribution</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminProfileDetailsView.contribution }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3" *ngIf="adminDetailsTitle === 'Investor Profile'">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Total Invested</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">Rs {{ adminProfileDetailsView.totalInvested | number }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-3" *ngIf="adminDetailsTitle === 'Investor Profile'">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">No. of Investments</p>
+                      <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminProfileDetailsView.investmentCount }}</p>
+                    </div>
+                  </div>
+
+                  <div class="px-5 pb-5 space-y-3">
+                    <p *ngIf="adminDetailsLoading" class="text-sm text-slate-500">Loading latest profile details...</p>
+                    <div class="rounded-xl border border-slate-200 p-3">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Skills</p>
+                      <p class="mt-1 text-sm text-slate-800">{{ adminProfileDetailsView.skills }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 p-3">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Experience</p>
+                      <p class="mt-1 text-sm text-slate-800">{{ adminProfileDetailsView.experience }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 p-3">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Bio</p>
+                      <p class="mt-1 text-sm text-slate-800">{{ adminProfileDetailsView.bio }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 p-3">
+                      <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Portfolio Links</p>
+                      <p class="mt-1 text-sm text-slate-800 break-all">{{ adminProfileDetailsView.portfolioLinks }}</p>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-template #nonProfileAdminDetails>
+                <ng-container *ngIf="adminDetailsIsStartupCard; else nonStartupAdminDetails">
+                  <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+                    <div class="bg-gradient-to-r from-amber-50 via-white to-lime-50 px-5 py-4 border-b border-slate-200/80">
+                      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div>
+                          <p class="text-base font-semibold text-slate-900">{{ adminStartupDetailsView.name }}</p>
+                          <p class="text-sm text-slate-600">Founder: {{ adminStartupDetailsView.founderName }}</p>
+                        </div>
+                        <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="getAdminStatusBadgeClass(adminStartupDetailsView.status)">{{ adminStartupDetailsView.status }}</span>
+                      </div>
+                    </div>
+
+                    <div class="p-5 grid gap-3 sm:grid-cols-2">
+                      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Industry</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminStartupDetailsView.industry }}</p>
+                      </div>
+                      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Stage</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminStartupDetailsView.stage }}</p>
+                      </div>
+                      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Funding Goal</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-900">Rs {{ adminStartupDetailsView.fundingGoal | number }}</p>
+                      </div>
+                      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Amount Raised</p>
+                        <p class="mt-1 text-sm font-semibold text-emerald-700">Rs {{ adminStartupDetailsView.amountRaised | number }}</p>
+                      </div>
+                    </div>
+
+                    <div class="px-5 pb-5 space-y-3">
+                      <div>
+                        <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
+                          <div class="h-full bg-emerald-500" [style.width.%]="adminStartupDetailsView.fundingProgress"></div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">{{ adminStartupDetailsView.fundingProgress }}% funded</p>
+                      </div>
+                      <div class="rounded-xl border border-slate-200 p-3">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Description</p>
+                        <p class="mt-1 text-sm text-slate-800">{{ adminStartupDetailsView.description }}</p>
+                      </div>
+                      <div class="rounded-xl border border-slate-200 p-3">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Problem Statement</p>
+                        <p class="mt-1 text-sm text-slate-800">{{ adminStartupDetailsView.problemStatement }}</p>
+                      </div>
+                      <div class="rounded-xl border border-slate-200 p-3">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Solution</p>
+                        <p class="mt-1 text-sm text-slate-800">{{ adminStartupDetailsView.solution }}</p>
+                      </div>
+                      <p class="text-xs text-slate-500">Created: {{ formatAdminDateTime(adminStartupDetailsView.createdAt) }}</p>
+                    </div>
+                  </div>
+                </ng-container>
+
+                <ng-template #nonStartupAdminDetails>
+                  <ng-container *ngIf="adminDetailsIsInvestorPortfolioCard; else genericAdminDetails">
+                    <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+                      <div class="bg-gradient-to-r from-emerald-50 via-white to-cyan-50 px-5 py-4 border-b border-slate-200/80">
+                        <p class="text-base font-semibold text-slate-900">{{ adminDisplayValue(adminDetailsPayload?.name) }} Portfolio</p>
+                        <p class="text-sm text-slate-600">{{ adminDisplayValue(adminDetailsPayload?.email) }}</p>
+                      </div>
+                      <div class="p-5 grid gap-3 sm:grid-cols-2">
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Total Invested</p>
+                          <p class="mt-1 text-sm font-semibold text-slate-900">Rs {{ (adminDetailsPayload?.totalInvested || 0) | number }}</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Investments</p>
+                          <p class="mt-1 text-sm font-semibold text-slate-900">{{ adminDetailsPayload?.investmentCount || 0 }}</p>
+                        </div>
+                        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
+                          <p class="text-[11px] uppercase tracking-[0.18em] text-slate-500">Recent Activity</p>
+                          <p class="mt-1 text-sm text-slate-800">{{ adminDisplayValue(adminDetailsPayload?.recentActivity) }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </ng-container>
+
+                  <ng-template #genericAdminDetails>
+                    <pre class="mt-4 text-xs bg-slate-50 rounded-xl p-3 overflow-auto border border-slate-200 max-h-[50vh]">{{ adminDetailsPayload | json }}</pre>
+                  </ng-template>
+                </ng-template>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <ng-container *ngIf="isFounder">
       <div class="space-y-10">
       <section id="dashboard" class="bg-white rounded-3xl shadow-sm ring-1 ring-slate-200/70 p-8">
@@ -382,63 +1027,6 @@
                 [disabled]="cofounderPage === cofounderTotalPages">
                 Next
               </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200/70">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-xl font-semibold text-slate-900">Interested Cofounders</h3>
-              <p class="text-slate-500 mt-1">Review cofounder interest requests and let them join your startup.</p>
-            </div>
-            <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-500" (click)="loadFounderInterestRequests()">
-              {{ founderInterestRequestsLoading ? 'Loading...' : 'Refresh' }}
-            </button>
-          </div>
-
-          <div *ngIf="founderInterestRequestsError" class="status error mt-4">{{ founderInterestRequestsError }}</div>
-          <div *ngIf="!founderInterestRequests.length && !founderInterestRequestsLoading" class="text-sm text-slate-500 mt-4">
-            No cofounder interest requests yet.
-          </div>
-
-          <div class="mt-4 grid gap-4 sm:grid-cols-2" *ngIf="founderInterestRequests.length">
-            <div *ngFor="let interest of founderInterestRequests" class="rounded-2xl border border-slate-200/70 bg-slate-50 p-4 text-sm">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <p class="font-semibold text-slate-900">{{ getUserName(interest.cofounderId) }}</p>
-                  <p class="text-xs text-slate-500 mt-1">Startup: {{ getStartupNameById(interest.startupId) }}</p>
-                  <p class="text-xs text-slate-500 mt-1" *ngIf="getInterestCofounderExpertise(interest)">Expertise: {{ getInterestCofounderExpertise(interest) }}</p>
-                </div>
-                <span class="text-xs font-semibold uppercase"
-                      [ngClass]="upper(interest.status) === 'ACCEPTED' ? 'text-emerald-600' : upper(interest.status) === 'REJECTED' ? 'text-rose-600' : 'text-indigo-600'">
-                  {{ interest.status }}
-                </span>
-              </div>
-
-              <div class="mt-3 flex flex-wrap gap-2" *ngIf="getInterestCofounderSkills(interest).length">
-                <span *ngFor="let skill of getInterestCofounderSkills(interest)" class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
-                  {{ skill }}
-                </span>
-              </div>
-
-              <div class="mt-4" *ngIf="upper(interest.status) === 'INTERESTED'">
-                <label class="text-xs font-semibold text-slate-700">Assign Role</label>
-                <select [(ngModel)]="founderInterestRoleById[interest.id]" name="founderInterestRole{{interest.id}}" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none focus:border-indigo-500">
-                  <option value="CTO">CTO</option>
-                  <option value="CPO">CPO</option>
-                  <option value="MARKETING_HEAD">Marketing Head</option>
-                  <option value="ENGINEERING_LEAD">Engineering Lead</option>
-                </select>
-                <div class="flex gap-2 mt-3">
-                  <button class="flex-1 px-3 py-2 rounded-full bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500 transition" (click)="acceptInterestRequest(interest)">
-                    Let Join
-                  </button>
-                  <button class="flex-1 px-3 py-2 rounded-full border border-slate-300 text-slate-700 text-xs font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="rejectInterestRequest(interest)">
-                    Reject
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -760,11 +1348,6 @@
                   <button class="flex-1 px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition" (click)="openTeamMembers(team.startupId)">
                     View Team Members
                   </button>
-                  <button class="flex-1 px-4 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
-                          [disabled]="!getStartupDetails(team.startupId)?.founderId"
-                          (click)="openMessageModal(team.startupId, getStartupDetails(team.startupId)?.founderId)">
-                    Message Founder
-                  </button>
                 </div>
               </article>
             </div>
@@ -802,6 +1385,7 @@
           (invest)="openInvestModal($event)"
           (pay)="requestPaymentOrder($event)"
           (refreshInvestments)="loadInvestorInvestments()"
+          (messageFounder)="handleInvestorMessageFounder($event)"
         ></app-investor-dashboard>
         <ng-container *ngTemplateOutlet="messagesSection"></ng-container>
       </ng-container>
@@ -1001,14 +1585,14 @@
 
     <div *ngIf="showInvestmentHistoryModal" class="fixed inset-0 z-30" (click)="closeInvestmentHistory()"></div>
 
-    <div *ngIf="showProfileModal" class="fixed inset-0 z-40 flex items-start justify-center bg-slate-900/60 px-4 py-8 overflow-y-auto">
-      <div class="bg-white w-full max-w-3xl rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70 max-h-[90vh] overflow-y-auto">
+    <div *ngIf="showProfileModal" class="fixed inset-0 z-40 bg-slate-900/60 px-4 py-8 overflow-y-auto" (click)="closeProfile()">
+      <div class="mx-auto w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-slate-200/70" (click)="$event.stopPropagation()">
         <div class="flex items-start justify-between gap-4">
           <div>
             <h3 class="text-xl font-semibold text-slate-900">Profile</h3>
             <p class="text-slate-500 mt-1">{{ userDisplayName }}</p>
           </div>
-          <button class="text-slate-400 hover:text-slate-600" (click)="closeProfile()">Close</button>
+          <button type="button" class="text-slate-400 hover:text-slate-600" (click)="closeProfile()">Close</button>
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2">
@@ -1022,161 +1606,110 @@
           </div>
         </div>
 
-        <div class="mt-6" *ngIf="isFounder">
-          <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Founder Stats</h4>
-          <div class="grid gap-4 sm:grid-cols-3 mt-4">
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Startups Created</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ myStartups.length }}</p>
+        <div class="mt-6 rounded-2xl border border-slate-200/70 bg-white p-4" *ngIf="!isAdmin">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Professional Profile</p>
+              <p class="text-sm text-slate-600 mt-1">Add your skills, experience, bio and portfolio links.</p>
             </div>
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Investments Received</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ founderInvestmentCount }}</p>
-            </div>
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Invested</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">₹{{ founderTotalInvestedAmount | number }}</p>
-            </div>
-          </div>
-          <div class="mt-5 rounded-2xl border border-slate-200/70 bg-white p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Cofounders Working With You</p>
-            <div class="mt-3 text-sm text-slate-600" *ngIf="!getFounderTeamMembers().length">
-              No team members loaded yet. Open a startup team to load cofounders.
-            </div>
-            <div class="mt-3 flex flex-wrap gap-2" *ngIf="getFounderTeamMembers().length">
-              <span *ngFor="let member of getFounderTeamMembers()" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
-                {{ member.name }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-6" *ngIf="isInvestor">
-          <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Investor Stats</h4>
-          <div class="grid gap-4 sm:grid-cols-3 mt-4">
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Investments Made</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ investorInvestments.length }}</p>
-            </div>
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Invested</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">₹{{ investorTotalInvestedAmount | number }}</p>
-            </div>
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Startups Backed</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ investorStartupCount }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-6" *ngIf="isCofounder">
-          <h4 class="text-sm font-semibold text-slate-700 uppercase tracking-[0.2em]">Cofounder Stats</h4>
-          <div class="grid gap-4 sm:grid-cols-3 mt-4">
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Active Teams</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ cofounderActiveTeams.length }}</p>
-            </div>
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Invitations</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ cofounderInvitations.length }}</p>
-            </div>
-            <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Accepted Invitations</p>
-              <p class="text-2xl font-semibold text-slate-900 mt-2">{{ getAcceptedCofounderInvitationsCount() }}</p>
-            </div>
+            <button
+              *ngIf="!profileLoading && hasCofounderProfile && !profileEditMode"
+              type="button"
+              class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 text-xs font-semibold hover:border-slate-400 hover:text-slate-900 transition"
+              (click)="enableProfileEdit()">
+              Edit
+            </button>
           </div>
 
-          <div class="mt-5 rounded-2xl border border-slate-200/70 bg-white p-4">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Professional Profile</p>
-                <p class="text-sm text-slate-600 mt-1">Add your skills and previous experience for founder visibility.</p>
+          <div *ngIf="profileLoading" class="text-sm text-slate-500 mt-4">Loading profile details...</div>
+
+          <div class="grid gap-4 mt-4" *ngIf="!profileLoading && !profileEditMode && hasCofounderProfile">
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Skills</label>
+              <div class="mt-2 flex flex-wrap gap-2" *ngIf="profileSkillChips.length">
+                <span *ngFor="let skill of profileSkillChips" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-100">
+                  {{ skill }}
+                </span>
               </div>
+              <p class="mt-2 text-sm text-slate-500" *ngIf="!profileSkillChips.length">No skills added yet.</p>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Experience</label>
+              <p class="mt-2 text-sm text-slate-700" *ngIf="profileExperienceSummary">{{ profileExperienceSummary }}</p>
+              <p class="mt-2 text-sm text-slate-500" *ngIf="!profileExperienceSummary">No experience added yet.</p>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Bio</label>
+              <p class="mt-2 text-sm text-slate-700" *ngIf="profileBio">{{ profileBio }}</p>
+              <p class="mt-2 text-sm text-slate-500" *ngIf="!profileBio">No bio added yet.</p>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Portfolio Links</label>
+              <p class="mt-2 text-sm text-slate-700 break-all" *ngIf="profilePortfolioLinks">{{ profilePortfolioLinks }}</p>
+              <p class="mt-2 text-sm text-slate-500" *ngIf="!profilePortfolioLinks">No portfolio links added yet.</p>
+            </div>
+          </div>
+
+          <div class="grid gap-4 mt-4" *ngIf="!profileLoading && (profileEditMode || !hasCofounderProfile)">
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Skills</label>
+              <input
+                type="text"
+                [(ngModel)]="profileSkills"
+                name="profileSkills"
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                placeholder="e.g., Java, Spring Boot, Product Strategy" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Experience</label>
+              <input
+                type="text"
+                [(ngModel)]="profileExperience"
+                name="profileExperience"
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                placeholder="e.g., Product and growth, 5 years" />
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Bio</label>
+              <textarea
+                rows="3"
+                [(ngModel)]="profileBio"
+                name="profileBio"
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                placeholder="Write a short bio"></textarea>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-slate-700">Portfolio Links</label>
+              <input
+                type="text"
+                [(ngModel)]="profilePortfolioLinks"
+                name="profilePortfolioLinks"
+                class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
+                placeholder="LinkedIn, GitHub, website" />
+            </div>
+            <div *ngIf="profileError" class="status error">{{ profileError }}</div>
+            <div *ngIf="profileSuccess" class="status success">{{ profileSuccess }}</div>
+            <div class="flex items-center gap-2">
               <button
-                *ngIf="!profileLoading && hasCofounderProfile && !profileEditMode"
                 type="button"
-                class="px-4 py-2 rounded-full border border-slate-300 text-slate-700 text-xs font-semibold hover:border-slate-400 hover:text-slate-900 transition"
-                (click)="enableProfileEdit()">
-                Edit
+                class="px-5 py-2.5 rounded-full bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-500 transition disabled:opacity-60"
+                (click)="saveCofounderProfile()"
+                [disabled]="profileSaving">
+                {{ profileSaving ? 'Saving...' : 'Save Profile' }}
               </button>
-            </div>
-
-            <div *ngIf="profileLoading" class="text-sm text-slate-500 mt-4">Loading profile details...</div>
-
-            <div class="grid gap-4 mt-4" *ngIf="!profileLoading && !profileEditMode && hasCofounderProfile">
-              <div>
-                <label class="text-sm font-semibold text-slate-700">Skills</label>
-                <div class="mt-2 flex flex-wrap gap-2" *ngIf="profileSkillChips.length">
-                  <span *ngFor="let skill of profileSkillChips" class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-100">
-                    {{ skill }}
-                  </span>
-                </div>
-                <p class="mt-2 text-sm text-slate-500" *ngIf="!profileSkillChips.length">No skills added yet.</p>
-              </div>
-              <div>
-                <label class="text-sm font-semibold text-slate-700">Expertise</label>
-                <p class="mt-2 text-sm text-slate-700 leading-relaxed" *ngIf="profileExperienceSummary">{{ profileExperienceSummary }}</p>
-                <p class="mt-2 text-sm text-slate-500" *ngIf="!profileExperienceSummary">No expertise added yet.</p>
-              </div>
-            </div>
-
-            <div class="grid gap-4 mt-4" *ngIf="!profileLoading && (profileEditMode || !hasCofounderProfile)">
-              <div>
-                <label class="text-sm font-semibold text-slate-700">Skills</label>
-                <input
-                  type="text"
-                  [(ngModel)]="profileSkills"
-                  name="profileSkills"
-                  class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
-                  placeholder="e.g., Java, Spring Boot, Product Strategy" />
-              </div>
-              <div class="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label class="text-sm font-semibold text-slate-700">Expertise Domain</label>
-                  <input
-                    type="text"
-                    [(ngModel)]="profileExperienceDomain"
-                    name="profileExperienceDomain"
-                    class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
-                    placeholder="e.g., AI" />
-                </div>
-                <div>
-                  <label class="text-sm font-semibold text-slate-700">Experience (Years)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    [(ngModel)]="profileExperienceYears"
-                    name="profileExperienceYears"
-                    class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none"
-                    placeholder="e.g., 2" />
-                </div>
-              </div>
-              <div *ngIf="profileError" class="status error">{{ profileError }}</div>
-              <div *ngIf="profileSuccess" class="status success">{{ profileSuccess }}</div>
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  class="px-5 py-2.5 rounded-full bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-500 transition disabled:opacity-60"
-                  (click)="saveCofounderProfile()"
-                  [disabled]="profileSaving">
-                  {{ profileSaving ? 'Saving...' : 'Save Profile' }}
-                </button>
-                <button
-                  *ngIf="hasCofounderProfile"
-                  type="button"
-                  class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition"
-                  (click)="cancelProfileEdit()"
-                  [disabled]="profileSaving">
-                  Cancel
-                </button>
-              </div>
+              <button
+                *ngIf="hasCofounderProfile"
+                type="button"
+                class="px-5 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:border-slate-400 hover:text-slate-900 transition"
+                (click)="cancelProfileEdit()"
+                [disabled]="profileSaving">
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <div *ngIf="showProfileModal" class="fixed inset-0 z-30" (click)="closeProfile()"></div>
 
     <div *ngIf="showMessageModal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">
       <div class="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl ring-1 ring-slate-200/70">
@@ -1201,7 +1734,7 @@
         </div>
 
         <div class="mt-4 flex gap-3">
-          <input type="text" [(ngModel)]="messageText" name="messageText" class="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Write a message..." />
+          <input type="text" [(ngModel)]="messageText" name="messageText" (keydown.enter)="sendMessageOnEnter($event)" class="flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none" placeholder="Write a message..." />
           <button class="px-5 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-60" (click)="sendMessage()" [disabled]="messageSending">
             {{ messageSending ? 'Sending...' : 'Send' }}
           </button>

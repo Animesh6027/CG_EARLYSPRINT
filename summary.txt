@@ -1,0 +1,227 @@
+FOUNDERLINK SYSTEM SUMMARY
+
+OVERVIEW (ONE LINE)
+This repo is a microservices backend + Angular frontend for a founder/investor platform, with API Gateway, service discovery, config server, MySQL per service, Redis cache, RabbitMQ events, and monitoring.
+
+BACKEND SERVICES (WHAT EACH DOES + HOW IT IS WIRED)
+
+API GATEWAY
+- Purpose: Single entry point for frontend, routes requests to internal services.
+- Port: 8090.
+- Routing: Uses Spring Cloud Gateway routes from config-repo/api-gateway.yml.
+- Security: RBAC rules and public paths are defined in config-repo/api-gateway.yml.
+- CORS: Allows http://localhost:4200 and http://frontend:4200.
+- Wire-up: Talks to services by name via Eureka (lb://service-name).
+
+EUREKA SERVER (SERVICE REGISTRY)
+- Purpose: Service discovery; other services register here.
+- Port: 8761.
+- Wire-up: API Gateway + all services use Eureka for service lookup.
+
+CONFIG SERVER
+- Purpose: Central configuration for all services.
+- Source of truth: config-repo/*.yml.
+- Wire-up: Each service pulls config from Config Server at startup.
+
+AUTH SERVICE
+- Purpose: Login, register, refresh token, logout, password reset, JWT issuance.
+- Port: 8089.
+- DB: auth-db (MySQL) database auth_service_db.
+- Wire-up:
+  - Calls user-service via Feign to sync user data.
+  - Publishes events (user registered, password reset) via RabbitMQ.
+
+USER SERVICE
+- Purpose: User profiles and role-based user data.
+- Port: 8081.
+- DB: user-db (MySQL) database user_db.
+- Wire-up:
+  - Receives internal calls from auth-service (with internal secret).
+
+STARTUP SERVICE
+- Purpose: Startup CRUD, search, and details.
+- Port: 8083.
+- DB: startup-db (MySQL) database startup_db.
+- Wire-up:
+  - Publishes startup.created and startup.deleted events to RabbitMQ.
+
+INVESTMENT SERVICE
+- Purpose: Create investments, list by startup or investor, update status.
+- Port: 8084.
+- DB: investment-db (MySQL) database investment_db.
+- Wire-up:
+  - Calls startup-service via Feign (with retry/circuit breaker).
+  - Publishes investment.created / investment.approved / investment.rejected events.
+  - Listens for payment.completed / payment.failed events.
+
+TEAM SERVICE
+- Purpose: Team invites, joins, and membership for startups.
+- Port: 8085.
+- DB: team-db (MySQL) database team_db.
+- Wire-up:
+  - Calls startup-service via Feign (with retry/circuit breaker).
+  - Publishes team.invite.sent, team.member.accepted, team.member.rejected events.
+  - Listens for startup.deleted events to clean up.
+
+MESSAGING SERVICE
+- Purpose: User-to-user messaging and conversations.
+- Port: 8086.
+- DB: messaging-db (MySQL) database messaging_db.
+- Wire-up:
+  - Publishes message.sent events to RabbitMQ.
+
+NOTIFICATION SERVICE
+- Purpose: In-app and email notifications.
+- Port: 8087.
+- DB: notification-db (MySQL) database notification_db.
+- Wire-up:
+  - Listens to many RabbitMQ queues (startup, investment, team, messaging, payment).
+  - Uses SMTP settings for email notifications.
+
+PAYMENT SERVICE
+- Purpose: Payment order creation and confirmation (Razorpay integration).
+- Port: 8088.
+- DB: payment-db (MySQL) database payment_db.
+- Wire-up:
+  - Publishes payment.completed / payment.failed events.
+  - Listens to investment events (created, approved, rejected).
+  - Talks to wallet-service via Feign with circuit breaker.
+
+WALLET SERVICE
+- Purpose: Wallet balances and transactions.
+- Port: 8091.
+- DB: wallet-db (MySQL) database wallet_db.
+- Wire-up:
+  - Called by payment-service or API Gateway routes.
+
+SHARED BACKEND INFRA
+- MySQL per service (9 databases).
+- Redis for caching and shared data (configured in config-repo/application.yml).
+- RabbitMQ for async events between services.
+- Zipkin for tracing (all services report traces).
+
+BACKEND WIRING FLOW (TEXT DIAGRAM)
+
+Frontend
+  -> API Gateway (8090)
+    -> Eureka (service discovery)
+    -> Auth Service (8089)
+    -> User Service (8081)
+    -> Startup Service (8083)
+    -> Investment Service (8084)
+    -> Team Service (8085)
+    -> Messaging Service (8086)
+    -> Notification Service (8087)
+    -> Payment Service (8088)
+    -> Wallet Service (8091)
+
+Events (RabbitMQ)
+  Startup Service -> startup.created / startup.deleted
+  Investment Service -> investment.created / approved / rejected
+  Team Service -> team.invite.sent / member.accepted / member.rejected
+  Messaging Service -> message.sent
+  Payment Service -> payment.completed / payment.failed
+  Notification Service listens to all above queues and sends notifications
+
+COMMON USER FLOWS (SIMPLE)
+
+LOGIN FLOW
+User -> Frontend -> /auth/login -> Auth Service
+Auth Service -> JWT + refresh cookie
+Frontend stores JWT -> uses it for all protected calls
+If JWT expires -> Frontend calls /auth/refresh -> new JWT -> retry request
+
+REGISTER FLOW
+User -> Frontend -> /auth/register -> Auth Service
+Auth Service -> creates auth record
+Auth Service -> calls User Service to create profile
+Auth Service -> publishes user-registered event
+Notification Service -> sends welcome notification/email
+
+STARTUP CREATION FLOW
+Founder -> Frontend -> /startup -> Startup Service
+Startup Service -> saves in startup-db
+Startup Service -> publishes startup.created event
+Notification Service -> notifies relevant users
+
+INVESTMENT + PAYMENT FLOW
+Investor -> /investments -> Investment Service (creates investment)
+Investment Service -> publishes investment.created
+Payment Service -> creates payment order (/payments/create-order)
+Investor completes payment -> /payments/confirm
+Payment Service -> publishes payment.completed or payment.failed
+Investment Service updates status -> notifies
+Notification Service sends updates
+
+TEAM INVITE FLOW
+Founder -> /teams/invite -> Team Service
+Team Service -> publishes team.invite.sent
+Notification Service -> notifies cofounder
+Cofounder -> /teams/join or /teams/invitations/* -> Team Service
+Team Service -> publishes team.member.accepted or team.member.rejected
+
+MESSAGING FLOW
+User -> /messages -> Messaging Service
+Messaging Service -> stores message + publishes message.sent
+Notification Service -> notifies receiver
+
+FRONTEND OVERVIEW (ANGULAR)
+
+TECH STACK
+- Angular app in frontend/.
+- Tailwind CSS configured via tailwind.config.js.
+- HttpClient used for API calls.
+- Auth interceptor handles token refresh.
+
+MAIN PARTS
+- App module: frontend/src/app/app.module.ts
+  - Declares AppComponent, InvestorDashboardComponent, CofounderDashboardComponent.
+  - Registers AuthInterceptor for all HTTP calls.
+- ApiService: frontend/src/app/services/api.service.ts
+  - Central place for API calls to backend.
+  - Adds headers X-User-Id and X-User-Role when available.
+- AuthInterceptor: frontend/src/app/interceptors/auth.interceptor.ts
+  - Attaches JWT to outgoing requests.
+  - On 401, calls /auth/refresh and retries the original request.
+- Components:
+  - AppComponent (main shell and flow glue)
+  - InvestorDashboardComponent
+  - CofounderDashboardComponent
+
+FRONTEND -> BACKEND BASE URL
+- Configured in frontend/src/environments/environment.ts
+- apiBaseUrl = https://backend.founderlink.online
+
+FRONTEND API CALLS (MAIN ONES)
+- Auth: /auth/register, /auth/login, /auth/forgot-password, /auth/reset-password, /auth/refresh, /auth/logout
+- Users: /users/role/{role}, /users/{id}, /users/{id} (PUT)
+- Startups: /startup, /startup/details/{id}, /startup/search
+- Investments: /investments, /investments/startup/{id}, /investments/investor, /investments/{id}/status
+- Payments: /payments/create-order, /payments/confirm
+- Notifications: /notifications/{userId}, /notifications/{id}/read
+
+FRONTEND FLOW DIAGRAM (TEXT)
+
+User Action
+  -> Angular Component (App/Investor/Cofounder)
+    -> ApiService (adds headers)
+      -> AuthInterceptor (adds JWT, handles refresh)
+        -> API Gateway (8090)
+          -> Service (auth/user/startup/investment/etc)
+            -> DB + Events
+
+MONITORING FLOW
+Services -> Prometheus (metrics) -> Grafana dashboards
+Services -> Loki (logs via Promtail) -> Grafana log view
+Services -> Zipkin (tracing)
+
+FILES USED FOR THIS SUMMARY
+- docker-compose.services.yml
+- docker-compose.infra.yml
+- docker-compose.monitoring.yml
+- config-repo/application.yml
+- config-repo/*.yml (per service)
+- frontend/src/app/services/api.service.ts
+- frontend/src/app/interceptors/auth.interceptor.ts
+- frontend/src/environments/environment.ts
+- frontend/src/app/app.module.ts

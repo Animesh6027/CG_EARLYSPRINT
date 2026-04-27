@@ -1,42 +1,62 @@
 # FounderLink Microservices Platform
 
-Welcome to the **FounderLink Microservices Platform** documentation! This platform is designed to facilitate seamless interactions between different services within the FounderLink architecture. Below you will find comprehensive information about the architecture, services, and how to get started.
+## Architecture
+FounderLink is built with a modular microservices architecture that promotes scalability, flexibility, and maintainability. Each microservice is designed to handle specific functionalities, allowing independent development and deployment.
 
-## Overview
-FounderLink is a state-of-the-art platform that leverages microservices architecture to provide scalable and efficient service communication. The platform is built with the following key principles:
+## Microservices
+1. **User Service**: Manages user authentication and profiles.
+2. **Order Service**: Handles order processing and management.
+3. **Payment Service**: Manages payment processing and transactions.
+4. **Notification Service**: Sends notifications through various channels.
+5. **Inventory Service**: Manages product inventory and tracking.
 
-- **Modularity**: Each service is self-contained and can be developed, deployed, and scaled independently.
-- **Flexibility**: Easily integrate new services and technologies as business needs evolve.
-- **Resilience**: Designed for high availability and fault tolerance, ensuring uninterrupted service.
+## Features
+- **Modular Design**: Easily add or remove services.
+- **Scalability**: Handle a growing number of users and transactions seamlessly.
+- **Security**: Built-in security features to protect user data and transactions.
+- **Real-time Notifications**: Instant updates on orders and transactions.
 
-## Services
-Here’s a brief overview of core services within the FounderLink platform:
+## Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Animesh6027/CG_EARLYSPRINT.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd CG_EARLYSPRINT
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Start the microservices:
+   ```bash
+   npm start
+   ```
 
-1. **User Service**: Manages user accounts and authentication.
-2. **Product Service**: Handles product listings and inventory management.
-3. **Order Service**: Responsible for order processing and management.
-4. **Payment Service**: Facilitates secure transactions and payment processing.
+## URLs
+- **User Service**: `/api/users`
+- **Order Service**: `/api/orders`
+- **Payment Service**: `/api/payments`
+- **Notification Service**: `/api/notifications`
+- **Inventory Service**: `/api/inventory`
 
-## Getting Started
-To get started with the FounderLink Microservices Platform, follow this guide:
+## Security
+- Implement OAuth 2.0 for secure authentication.
+- Use HTTPS for all communications.
+- Regularly update dependencies to mitigate vulnerabilities.
 
-1. **Clone the repository**:
-    ```bash
-    git clone https://github.com/Animesh6027/CG_EARLYSPRINT.git
-    cd CG_EARLYSPRINT
-    ```
-2. **Setup environment variables** as specified in the `.env.example` file.
-3. **Run the services** using Docker:
-    ```bash
-    docker-compose up
-    ```
-4. **Access documentation** at `http://localhost:8080/docs` for further details.
+## Monitoring
+- Use tools like Prometheus and Grafana to monitor performance.
+- Implement logging through services like ELK (Elasticsearch, Logstash, Kibana).
+
+## Troubleshooting
+- Check the logs for error messages and stack traces.
+- Ensure all services are running and reachable.
+- Verify database connections and configurations.
 
 ## Contributing
-We welcome contributions! Please read our [contribution guidelines](CONTRIBUTING.md) before submitting a pull request.
+We welcome contributions! Please fork the repository and submit a pull request with your changes. Ensure you follow the code of conduct and guidelines provided in the repository.
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-For any issues or inquiries, please reach out to [support@founderlink.com](mailto:support@founderlink.com).
+## Support
+For further assistance, please reach out to the support team via email at support@founderlink.com or open an issue on GitHub.

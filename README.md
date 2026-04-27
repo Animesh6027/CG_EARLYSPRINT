@@ -24,7 +24,7 @@ FounderLink is a **founder–investor matchmaking platform** built on a producti
 
 ### What is FounderLink?
 
-FounderLink provides a centralised space where:
+FounderLink provides a centralized space where:
 
 - **Founders** can list their startups, recruit co-founders, and raise investment.
 - **Investors** can discover startups, make investments, and track their portfolios.
@@ -121,7 +121,7 @@ auth-  user- start- invest- team- messag notif pay- wallet
 |---|---|---|---|
 | **API Gateway** | `8090` | — | Single entry point; routes to all backend services via Eureka |
 | **Eureka Server** | `8761` | — | Service registry; all services register and discover each other here |
-| **Config Server** | internal | — | Centralised configuration loaded from `config-repo/` at startup |
+| **Config Server** | internal | — | Centralized configuration loaded from `config-repo/` at startup |
 | **Auth Service** | `8089` | `auth_service_db` | JWT login, register, token refresh, logout, password reset |
 | **User Service** | `8081` | `user_db` | User profiles and role-based data |
 | **Startup Service** | `8083` | `startup_db` | Startup CRUD, search, and detail pages |
@@ -278,7 +278,7 @@ Each MySQL instance runs inside the `founderlink-internal` Docker network. Crede
 | Container | `config-server` |
 | Port | internal |
 | Source | `config-repo/` directory |
-| Use | Centralised configuration; each service fetches config at startup |
+| Use | Centralized configuration; each service fetches config at startup |
 
 ---
 
@@ -408,7 +408,7 @@ npm install
 npm start
 ```
 
-The app will open at `http://localhost:4200` and point to `https://backend.founderlink.online` by default. Update `frontend/src/environments/environment.ts` to target your local API Gateway if needed.
+The app will open at `http://localhost:4200`. By default it targets the production backend (`https://backend.founderlink.online`). To run fully locally, update `frontend/src/environments/environment.ts` and change `apiBaseUrl` to `http://localhost:8090` (the local API Gateway).
 
 ### Stopping All Services
 

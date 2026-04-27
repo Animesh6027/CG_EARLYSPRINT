@@ -1,35 +1,42 @@
-# CG_EARLYSPRINT
+# FounderLink Microservices Platform
 
-![GitHub last commit](https://img.shields.io/github/last-commit/Animesh6027/CG_EARLYSPRINT)
-![GitHub stars](https://img.shields.io/github/stars/Animesh6027/CG_EARLYSPRINT?style=social)
+Welcome to the **FounderLink Microservices Platform** documentation! This platform is designed to facilitate seamless interactions between different services within the FounderLink architecture. Below you will find comprehensive information about the architecture, services, and how to get started.
 
-## Introduction
-Welcome to the CG_EARLYSPRINT project! This repository is dedicated to early development activities in computer graphics.
+## Overview
+FounderLink is a state-of-the-art platform that leverages microservices architecture to provide scalable and efficient service communication. The platform is built with the following key principles:
 
-## Table of Contents
-- [Installation](#installation)
-- [Usage](#usage)
-- [Features](#features)
-- [Contributing](#contributing)
-- [License](#license)
+- **Modularity**: Each service is self-contained and can be developed, deployed, and scaled independently.
+- **Flexibility**: Easily integrate new services and technologies as business needs evolve.
+- **Resilience**: Designed for high availability and fault tolerance, ensuring uninterrupted service.
 
-## Installation
-To get started, clone the repository:
+## Services
+Here’s a brief overview of core services within the FounderLink platform:
 
-```bash
-git clone https://github.com/Animesh6027/CG_EARLYSPRINT.git
-```
+1. **User Service**: Manages user accounts and authentication.
+2. **Product Service**: Handles product listings and inventory management.
+3. **Order Service**: Responsible for order processing and management.
+4. **Payment Service**: Facilitates secure transactions and payment processing.
 
-## Usage
-Instructions on how to use the project will be provided here. 
+## Getting Started
+To get started with the FounderLink Microservices Platform, follow this guide:
 
-## Features
-- Feature 1: Detailed description.
-- Feature 2: Detailed description.
-- Feature 3: Detailed description.
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/Animesh6027/CG_EARLYSPRINT.git
+    cd CG_EARLYSPRINT
+    ```
+2. **Setup environment variables** as specified in the `.env.example` file.
+3. **Run the services** using Docker:
+    ```bash
+    docker-compose up
+    ```
+4. **Access documentation** at `http://localhost:8080/docs` for further details.
 
 ## Contributing
-Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions! Please read our [contribution guidelines](CONTRIBUTING.md) before submitting a pull request.
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+For any issues or inquiries, please reach out to [support@founderlink.com](mailto:support@founderlink.com).
